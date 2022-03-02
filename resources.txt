@@ -1,0 +1,8 @@
+-> C++
+	The C++ Programming Language 4th Edition Bjarne Stroustrup https://b-ok.africa/book/2290165/2b58c9
+	-> Templates
+		> C++ Templates: The Complete Guide https://b-ok.africa/book/632484/ca094c
+
+-> data structures and Algorithmes
+
+	Introduction to Algorithms, Third Edition https://b-ok.africa/book/986690/1e31b0
