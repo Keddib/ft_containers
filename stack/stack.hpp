@@ -1,3 +1,7 @@
+#ifndef FT_STACK_HPP
+#define FT_STACK_HPP
+
+
 #include <vector>
 #include <stdexcept>
 
@@ -54,3 +58,5 @@ namespace ft
 	};
 
 }  // ft
+
+#endif
