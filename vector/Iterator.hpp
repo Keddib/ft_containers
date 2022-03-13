@@ -1,10 +1,12 @@
 #ifndef FT_VITERATOR_HPP
 #define FT_VITERATOR_HPP
 
+#include <iterator>
+
 namespace ft {
 
 	template <typename T>
-	class iterator {
+	class Iterator {
 		public:
 			//types
 			typedef ptrdiff_t								difference_type;
@@ -17,24 +19,24 @@ namespace ft {
 			pointer _p;
 
 		public:
-			iterator(pointer p = 0) : _p(p) {}
+			Iterator(pointer p = 0) : _p(p) {}
 
-			iterator( const iterator &other) _p(other._p) {}
+			Iterator( const Iterator &other) : _p(other._p) {}
 
-			~iterator() { _p = nullptr; }
+			~Iterator() { _p = nullptr; }
 
-			iterator& operator = (const iterator &other ) {
+			Iterator& operator = (const Iterator &other ) {
 				_p = other._p;
 				return *this;
 			}
 
-			bool operator == (const iterator &other ) {
+			bool operator == (const Iterator &other ) {
 				return _p == other._p;
 			}
-			bool operator != (const iterator &other ) {
+			bool operator != (const Iterator &other ) {
 				return ! (_p == other._p);
 			}
-			reference operator * (const iterator &other ) const{
+			reference operator * () const{
 				return *_p;
 			}
 
@@ -42,7 +44,7 @@ namespace ft {
 				return *(_p + n);
 			}
 
-			pointer operator -> (const iterator &other ) const{
+			pointer operator -> () const{
 				return _p; // (iter.operator->())->member_func();
 			}
 
@@ -52,7 +54,7 @@ namespace ft {
 				return _p;
 			}
 			pointer	operator -- ( void ) {
-				_p--
+				_p--;
 				return _p;
 			}
 
@@ -80,27 +82,27 @@ namespace ft {
 			pointer operator -= ( size_t n) {
 				return _p -= n;
 			}
-			friend pointer operator + (size_t n, const iterator &iter) {
+			friend pointer operator + (size_t n, const Iterator &iter) {
 				return iter._p + n;
 			}
-			pointer operator - (const iterator &other) {
-				return iter._p - other._p;
+			difference_type operator - (const Iterator &other) {
+				return _p - other._p;
 			}
 
-			bool operaotr < (const iterator &other) {
+			bool operator < (const Iterator &other) {
 				return _p < other._p;
 			}
-			bool operaotr > (const iterator &other) {
+			bool operator > (const Iterator &other) {
 				return _p > other._p;
 			}
-			bool operaotr <= (const iterator &other) {
+			bool operator <= (const Iterator &other) {
 				return _p <= other._p;
 			}
-			bool operaotr >= (const iterator &other) {
+			bool operator >= (const Iterator &other) {
 				return _p >= other._p;
 			}
-			// operator for conversion from 'iterator<int>' to iterator<const int>'
-			operator iterator<const T> () {
+			// operator for conversion from 'Iterator<int>' to Iterator<const int>'
+			operator Iterator<const T> () {
 				return (const pointer)_p;
 			}
 	};
