@@ -1,9 +1,10 @@
 #ifndef FT_VECTOR_HPP
 #define FT_VECTOR_HPP
 
-#include "iterator.hpp"
-#include "utils/iterator_traits.hpp"
-#include "utils/enable_if.hpp"
+#include "Iterator.hpp"
+#include "../utils/iterator_traits.hpp"
+#include "../utils/enable_if.hpp"
+#include "../utils/lexicographical_compare.hpp"
 #include <memory>
 #include <algorithm>
 
@@ -23,8 +24,8 @@ class vector
 		typedef typename allocator_type::const_pointer		const_pointer;
 		typedef typename allocator_type::size_type			size_type;
 		typedef typename allocator_type::difference_type	difference_type;
-		typedef ft::iterator<T>								iterator;
-		typedef ft::iterator<const T>						const_iterator;
+		typedef Iterator<T>									iterator;
+		typedef Iterator<const T>							const_iterator;
 		typedef std::reverse_iterator<iterator>				reverse_iterator;
 		typedef std::reverse_iterator<const_iterator>		const_reverse_iterator;
 
@@ -36,19 +37,54 @@ class vector
 
 		// tag dispatching
 		template <class InputIterator>
-		void _rang(InputIterator first, InputIterator last, std::random_access_iterator_tag) {
-			_capacity = last - first;
-			_elements = _alloc.allocate(_capacity);
+		int _range(InputIterator first, InputIterator last, std::random_access_iterator_tag) {
+			return last - first;
 		}
 		template <class InputIterator>
-		void _rang(InputIterator first, InputIterator last, std::bidirectional_iterator_tag) {
-			_capacity= std::distance(first, last);
-			_elements = _alloc.allocate(_capacity);
+		int _range(InputIterator first, InputIterator last, std::bidirectional_iterator_tag) {
+			return std::distance(first, last);
 		}
 		template <class InputIterator>
-		void _ran(InputIterator , InputIterator , std::input_iterator_tag) {
+		int _range(InputIterator , InputIterator , std::input_iterator_tag) {
+			return -1;
 		}
 
+		template <class InputIterator> // _insert for range of input Iterators
+		void _insert(iterator position, InputIterator first, InputIterator last) {
+			vector<value_type> tmp(first, last);
+			iterator begin = tmp.begin();
+			size_type n = tmp.size();
+			size_type pos = position - _elements;
+			if (_size + n <= _capacity) {
+				for (size_type i = _size - 1; i >= pos; i++) {
+					if (i + n < _size)
+						_elements[i + n] = _elements[i];
+					else
+						_alloc.construct(_elements + i + n, _elements[i]);
+				}
+				for (size_type i = pos; i < pos + n; i++) {
+					if (i < _size)
+						_elements[i] = *begin++;
+					else
+						_alloc.construct(_elements + i, *begin++);
+				}
+				_size += n;
+			}
+			else if (_size + n > _capacity) {
+				_capacity += n;
+				pointer tmp = _alloc.allocate(_capacity);
+				for (size_type i = 0; i < pos; i++)
+					_alloc.construct(tmp + i, _elements[i]);
+				for (size_type i = pos; i < pos + n; i++)
+					_alloc.construct(tmp + i, *begin++);
+				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+					_alloc.construct(tmp + i, _elements[i - n]);
+				clear();
+				_alloc.deallocate(_elements, _capacity - n);
+				_elements = tmp;
+				_size += n;
+			}
+		}
 
 	public:
 
@@ -56,7 +92,7 @@ class vector
 		explicit vector(const allocator_type &alloc = allocator_type())
 		: _elements(NULL), _alloc(alloc), _capacity(0), _size(0) {}
 
-		explicit vector(size_type n, const value_typeT& value = value_type(), const allocator_type &alloc = allocator_type())
+		explicit vector(size_type n, const_reference value = value_type(), const allocator_type &alloc = allocator_type())
 		: _elements(NULL), _alloc(alloc), _capacity(n), _size(n)
 		{
 			_elements = _alloc.allocate(_size);
@@ -65,10 +101,14 @@ class vector
 		}
 
 		template <class InputIterator> // enable_if
-		vector(InputIterator first, typename ft::enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last, const Allocator& alloc = Allocator())
+		vector(InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last, const Allocator& alloc = Allocator())
 		: _elements(NULL), _alloc(alloc), _capacity(0), _size(0)
 		{
-			_range(first, last, ft::iterator_traits<InputIterator>::iterator_category());
+			int dis = _range(first, last, typename std::iterator_traits<InputIterator>::iterator_category() );
+			if (dis != -1) {
+				_capacity = last - first;
+				_elements = _alloc.allocate(_capacity);
+			}
 			while (first != last)
 				push_back (*first++);
 		}
@@ -76,7 +116,7 @@ class vector
 		vector(const vector& x)
 		: _alloc(x._alloc), _capacity(x._capacity), _size(x._size) {
 			_alloc.allocate(_capacity);
-			for (size_type i = 0; i < _size)
+			for (size_type i = 0; i < _size; i++)
 				_alloc.construct(_elements + i, x._elements[i]);
 		}
 
@@ -97,15 +137,16 @@ class vector
 				for(size_type i = 0; i < _size; i++)
 					_elements[i] = x._elements[i];
 			}
+			return *this;
 		}
 
 		template <class InputIterator>
-		void assign(InputIterator first, typename ft::enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last)
+		void assign(InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last)
 		{
 			clear();
 			_alloc.deallocate(_elements, _capacity);
 			_capacity = 0;
-			_range(first, last, ft::iterator_traits<InputIterator>::iterator_category());
+			_range(first, last, typename std::iterator_traits<InputIterator>::iterator_category());
 			while (first != last)
 				push_back (*first++);
 		}
@@ -117,6 +158,7 @@ class vector
 			_elements = _alloc.allocate(_capacity);
 			for (; _size < n; _size++) {
 				_alloc.construct(_elements + _size, u);
+			}
 		}
 
 		allocator_type get_allocator() const { return _alloc; }
@@ -130,9 +172,9 @@ class vector
 
 		const_iterator end() const { return const_iterator(_elements + _size); }
 
-		reverse_iterator rbegin() { return reverse_iterator(_elements + size); }
+		reverse_iterator rbegin() { return reverse_iterator(_elements + _size); }
 
-		const_reverse_iterator rbegin() const { return const_reverse_iterator(_elements + size); }
+		const_reverse_iterator rbegin() const { return const_reverse_iterator(_elements + _size); }
 
 		reverse_iterator rend() { return reverse_iterator(_elements ); }
 
@@ -154,7 +196,7 @@ class vector
 			} else {
 				// reallocate one time;
 				for (size_t i = _size; i < sz; i++)
-					push_back(u);
+					push_back(c);
 			}
 		}
 
@@ -185,13 +227,13 @@ class vector
 
 		reference at(size_type n) {
 			if (n >= _size)
-				throw std::out_of_range;
+				throw std::out_of_range("out of range") ;
 			return _elements[n];
 		}
 
 		const_reference at(size_type n) const {
 			if (n >= _size)
-				throw std::out_of_range;
+				throw std::out_of_range("out of range") ;
 			return _elements[n];
 		}
 
@@ -255,25 +297,85 @@ class vector
 		}
 
 		void insert(iterator position, size_type n, const_reference x) {
-			iterator iter = insert(position, x);
-			for (size_type i = 1; i < n; i++) {
-				iterator iter = insert(iter + 1, x);
+			size_type pos = position - _elements;
+			if (pos > _size || n < 1)
+				return ;
+			if (_size + n <= _capacity) {
+				for (size_type i = _size - 1; i >= pos; i++) {
+					if (i + n < _size)
+						_elements[i + n] = _elements[i];
+					else
+						_alloc.construct(_elements + i + n, _elements[i]);
+				}
+				for (size_type i = pos; i < pos + n; i++) {
+					if (i < _size)
+						_elements[i] = x;
+					else
+						_alloc.construct(_elements + i, x);
+				}
+				_size += n;
+			}
+			else if (_size + n > _capacity) {
+				_capacity += n;
+				pointer tmp = _alloc.allocate(_capacity);
+				for (size_type i = 0; i < pos; i++)
+					_alloc.construct(tmp + i, _elements[i]);
+				for (size_type i = pos; i < pos + n; i++)
+					_alloc.construct(tmp + i, x);
+				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+					_alloc.construct(tmp + i, _elements[i - n]);
+				clear();
+				_alloc.deallocate(_elements, _capacity - n);
+				_elements = tmp;
+				_size += n;
 			}
 		}
 
 		template <class InputIterator>
-		void insert(iterator position, InputIterator first, typename ft::enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last)
+		void insert(iterator position, InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last)
 		{
-			iterator iter = insert(position, *first);
-			while (first != last) {
-				iterator iter = insert(iter + 1, *first);
-				first++;
+			size_type pos = position - _elements;
+			int dis = _range(first, last, typename std::iterator_traits<InputIterator>::iterator_category());
+			if (pos > _size)
+				return;
+			if (dis < 0) // input iterator
+				_insert(position, first, last);
+			size_type n = dis;
+			if (_size + n <= _capacity) {
+				for (size_type i = _size - 1; i >= pos; i++) {
+					if (i + n < _size)
+						_elements[i + n] = _elements[i];
+					else
+						_alloc.construct(_elements + i + n, _elements[i]);
+				}
+				for (size_type i = pos; i < pos + n; i++) {
+					if (i < _size)
+						_elements[i] = *first++;
+					else
+						_alloc.construct(_elements + i, *first++);
+				}
+				_size += n;
 			}
+			else if (_size + n > _capacity) {
+				_capacity += n;
+				pointer tmp = _alloc.allocate(_capacity);
+				for (size_type i = 0; i < pos; i++)
+					_alloc.construct(tmp + i, _elements[i]);
+				for (size_type i = pos; i < pos + n; i++)
+					_alloc.construct(tmp + i, *first++);
+				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+					_alloc.construct(tmp + i, _elements[i - n]);
+				clear();
+				_alloc.deallocate(_elements, _capacity - dis);
+				_elements = tmp;
+				_size += n;
+			}
+
 		}
 
 		iterator erase(iterator position) {
 			size_type pos = position - _elements;
-			_alloc.destroy(_elemets + pos);
+			_alloc.destroy(_elements + pos);
 			_alloc.construct( _elements + pos, _elements[pos + 1] );
 			for (++pos; pos < _size - 1; pos++) {
 				_elements[pos] = _elements[pos + 1];
@@ -289,7 +391,7 @@ class vector
 
 			for (size_type i = 0; (i < rang && i < _size) ; i++)
 			{
-				_alloc.destroy(_elements + (pos + i) ));
+				_alloc.destroy(_elements + (pos + i) );
 				if (rang + (pos + i) < _size)
 					_alloc.construct(_elements + (pos + i), _elements[rang + pos + i] );
 			}
@@ -298,7 +400,7 @@ class vector
 			{
 				_alloc.destroy(_elements + i);
 				if (i + rang < _size)
-					_alloc.construct(_elements + i, (_elements[i + rang] );
+					_alloc.construct(_elements + i, _elements[i + rang] );
 			}
 			_size = (_size >= rang) ? _size - rang : pos;
 			return first;
@@ -314,7 +416,7 @@ class vector
 				_alloc.destroy(_elements + i);
 			_size = 0;
 		}
-	};
+};
 
 	template <class T, class Allocator>
 	bool operator == (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
@@ -327,24 +429,30 @@ class vector
 	}
 
 	template <class T, class Allocator>
-	bool operator < (const vector<T,Allocator>& x, const vector<T,Allocator>& y);
+	bool operator < (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
+		return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
+	}
 
 	template <class T, class Allocator>
-	bool operator > (const vector<T,Allocator>& x, const vector<T,Allocator>& y);
+	bool operator > (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
+		return lexicographical_compare(y.begin(), y.end(), x.begin(), x.end());
+	}
 
 	template <class T, class Allocator>
-	bool operator>=(const vector<T,Allocator>& x, const vector<T,Allocator>& y);
+	bool operator>=(const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
+		return (x > y || x == y);
+	}
 
 	template <class T, class Allocator>
-	bool operator<=(const vector<T,Allocator>& x, const vector<T,Allocator>& y);
+	bool operator<=(const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
+		return (x < y || x == y);
+	}
 
 	// specialized algorithms:
 	template <class T, class Allocator>
 	void swap(vector<T,Allocator>& x, vector<T,Allocator>& y){
 		x.swap(y);
 	}
-
-};
 
 } // ft
 
