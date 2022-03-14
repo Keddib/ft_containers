@@ -56,7 +56,7 @@ class vector
 			size_type n = tmp.size();
 			size_type pos = position - _elements;
 			if (_size + n <= _capacity) {
-				for (size_type i = _size - 1; i >= pos; i++) {
+				for (size_type i = _size - 1; i >= pos; --i) {
 					if (i + n < _size)
 						_elements[i + n] = _elements[i];
 					else
@@ -79,10 +79,11 @@ class vector
 					_alloc.construct(tmp + i, *begin++);
 				for (size_type i = pos + n; i < _size + (n - 1); i ++)
 					_alloc.construct(tmp + i, _elements[i - n]);
+				size_type sz = _size;
 				clear();
 				_alloc.deallocate(_elements, _capacity - n);
 				_elements = tmp;
-				_size += n;
+				_size = sz + n;
 			}
 		}
 
@@ -115,7 +116,7 @@ class vector
 
 		vector(const vector& x)
 		: _alloc(x._alloc), _capacity(x._capacity), _size(x._size) {
-			_alloc.allocate(_capacity);
+			_elements = _alloc.allocate(_capacity);
 			for (size_type i = 0; i < _size; i++)
 				_alloc.construct(_elements + i, x._elements[i]);
 		}
@@ -143,10 +144,16 @@ class vector
 		template <class InputIterator>
 		void assign(InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last)
 		{
+			int n = _range(first, last, typename std::iterator_traits<InputIterator>::iterator_category());
 			clear();
-			_alloc.deallocate(_elements, _capacity);
-			_capacity = 0;
-			_range(first, last, typename std::iterator_traits<InputIterator>::iterator_category());
+			if (_capacity > 0) {
+				_alloc.deallocate(_elements, _capacity);
+				_capacity = 0;
+			}
+			if (n > 0) {
+				_capacity = n;
+				_elements = _alloc.allocate(_capacity);
+			}
 			while (first != last)
 				push_back (*first++);
 		}
@@ -188,11 +195,12 @@ class vector
 		void resize( size_type sz, value_type c = value_type() ) {
 
 			if (sz < _size) {
-				for (; sz < _size; sz++)
-					_alloc.destroy(_elements + sz);
+				for (size_type i = sz; i < _size; i++)
+					_alloc.destroy(_elements + i);
+				_size = sz;
 			} else if (sz < _capacity) {
-				for (size_type i = _size; i < sz; i++)
-					_alloc.construct( _elements + i, c );
+				for (; _size < sz; _size++)
+					_alloc.construct( _elements + _size, c );
 			} else {
 				// reallocate one time;
 				for (size_t i = _size; i < sz; i++)
@@ -202,7 +210,7 @@ class vector
 
 		size_type capacity() const { return _capacity; }
 
-		bool empty()const { return _size; }
+		bool empty()const { return !_size; }
 
 		void reserve(size_type n) {
 			if (n > _capacity) {
@@ -271,7 +279,9 @@ class vector
 				for(size_type i= 0; i < _size; i++)
 					_alloc.construct(tmp + i, _elements[i]);
 				// destroy all elements
+				size_type n = _size;
 				clear();
+				_size = n;
 				// deallocate elemnets
 				_alloc.deallocate(_elements, _capacity / 2);
 				_elements =  tmp;
@@ -301,7 +311,7 @@ class vector
 			if (pos > _size || n < 1)
 				return ;
 			if (_size + n <= _capacity) {
-				for (size_type i = _size - 1; i >= pos; i++) {
+				for (size_type i = _size - 1; i >= pos; --i) {
 					if (i + n < _size)
 						_elements[i + n] = _elements[i];
 					else
@@ -324,10 +334,11 @@ class vector
 					_alloc.construct(tmp + i, x);
 				for (size_type i = pos + n; i < _size + (n - 1); i ++)
 					_alloc.construct(tmp + i, _elements[i - n]);
+				size_type sz = _size;
 				clear();
 				_alloc.deallocate(_elements, _capacity - n);
 				_elements = tmp;
-				_size += n;
+				_size = sz + n;
 			}
 		}
 
@@ -342,7 +353,7 @@ class vector
 				_insert(position, first, last);
 			size_type n = dis;
 			if (_size + n <= _capacity) {
-				for (size_type i = _size - 1; i >= pos; i++) {
+				for (size_type i = _size - 1; i >= pos; --i) {
 					if (i + n < _size)
 						_elements[i + n] = _elements[i];
 					else
@@ -363,12 +374,13 @@ class vector
 					_alloc.construct(tmp + i, _elements[i]);
 				for (size_type i = pos; i < pos + n; i++)
 					_alloc.construct(tmp + i, *first++);
-				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+				for (size_type i = pos + n; i < _size + n; i ++)
 					_alloc.construct(tmp + i, _elements[i - n]);
+				size_type sz = _size;
 				clear();
 				_alloc.deallocate(_elements, _capacity - dis);
 				_elements = tmp;
-				_size += n;
+				_size = sz + n;
 			}
 
 		}
