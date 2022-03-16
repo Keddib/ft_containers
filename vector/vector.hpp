@@ -5,6 +5,7 @@
 #include "../utils/iterator_traits.hpp"
 #include "../utils/enable_if.hpp"
 #include "../utils/lexicographical_compare.hpp"
+#include "../utils/reverse_iterator.hpp"
 #include <memory>
 #include <algorithm>
 
@@ -26,8 +27,8 @@ class vector
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef Iterator<T>									iterator;
 		typedef Iterator<const T>							const_iterator;
-		typedef std::reverse_iterator<iterator>				reverse_iterator;
-		typedef std::reverse_iterator<const_iterator>		const_reverse_iterator;
+		typedef ft::reverse_iterator<iterator>				reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
 	private:
 		pointer				_elements;
@@ -35,7 +36,7 @@ class vector
 		size_type			_capacity;
 		size_type			_size;
 
-		// tag dispatching
+		// tag dispatching  called based on iterator type
 		template <class InputIterator>
 		int _range(InputIterator first, InputIterator last, std::random_access_iterator_tag) {
 			return last - first;
@@ -71,17 +72,18 @@ class vector
 				_size += n;
 			}
 			else if (_size + n > _capacity) {
-				_capacity += n;
-				pointer tmp = _alloc.allocate(_capacity);
+				size_type newCap = n > _size ? _size + n : _size * 2;
+				pointer tmp = _alloc.allocate(newCap);
 				for (size_type i = 0; i < pos; i++)
 					_alloc.construct(tmp + i, _elements[i]);
 				for (size_type i = pos; i < pos + n; i++)
 					_alloc.construct(tmp + i, *begin++);
-				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+				for (size_type i = pos + n; i < _size + n; i ++)
 					_alloc.construct(tmp + i, _elements[i - n]);
 				size_type sz = _size;
 				clear();
-				_alloc.deallocate(_elements, _capacity - n);
+				_alloc.deallocate(_elements, _capacity);
+				_capacity = newCap;
 				_elements = tmp;
 				_size = sz + n;
 			}
@@ -102,7 +104,7 @@ class vector
 		}
 
 		template <class InputIterator> // enable_if
-		vector(InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last, const Allocator& alloc = Allocator())
+		vector (InputIterator first, typename enable_if<Type<typename std::iterator_traits<InputIterator>::iterator_category>::val, InputIterator>::type last, const Allocator& alloc = Allocator())
 		: _elements(NULL), _alloc(alloc), _capacity(0), _size(0)
 		{
 			int dis = _range(first, last, typename std::iterator_traits<InputIterator>::iterator_category() );
@@ -123,20 +125,22 @@ class vector
 
 		~vector() {
 			clear();
-			_alloc.deallocate(_elements, _capacity);
+			if (_elements)
+				_alloc.deallocate(_elements, _capacity);
 		}
 
 		vector<T,Allocator>& operator=(const vector& x)
 		{
 			if (this != &x) {
 				clear();
-				_alloc.deallocate(_elements, _capacity);
+				if (_elements)
+					_alloc.deallocate(_elements, _capacity);
 				_alloc = x._alloc;
 				_capacity = x._capacity;
 				_size = x._size;
 				_elements = _alloc.allocate(_capacity);
 				for(size_type i = 0; i < _size; i++)
-					_elements[i] = x._elements[i];
+					_alloc.construct(_elements + i, x._elements[i]);
 			}
 			return *this;
 		}
@@ -146,13 +150,12 @@ class vector
 		{
 			int n = _range(first, last, typename std::iterator_traits<InputIterator>::iterator_category());
 			clear();
-			if (_capacity > 0) {
-				_alloc.deallocate(_elements, _capacity);
-				_capacity = 0;
-			}
-			if (n > 0) {
-				_capacity = n;
-				_elements = _alloc.allocate(_capacity);
+			if (n > 0){
+				if ((size_type)n > _capacity) {
+					_alloc.deallocate(_elements, _capacity);
+					_capacity = n;
+					_elements = _alloc.allocate(_capacity);
+				}
 			}
 			while (first != last)
 				push_back (*first++);
@@ -160,9 +163,11 @@ class vector
 
 		void assign(size_type n, const_reference u) {
 			clear();
-			_alloc.deallocate(_elements, _capacity);
-			_capacity = n;
-			_elements = _alloc.allocate(_capacity);
+			if (n > _capacity) {
+				_alloc.deallocate(_elements, _capacity);
+				_capacity = n;
+				_elements = _alloc.allocate(_capacity);
+			}
 			for (; _size < n; _size++) {
 				_alloc.construct(_elements + _size, u);
 			}
@@ -198,13 +203,24 @@ class vector
 				for (size_type i = sz; i < _size; i++)
 					_alloc.destroy(_elements + i);
 				_size = sz;
-			} else if (sz < _capacity) {
+			} else if (sz <= _capacity) {
 				for (; _size < sz; _size++)
 					_alloc.construct( _elements + _size, c );
 			} else {
 				// reallocate one time;
-				for (size_t i = _size; i < sz; i++)
-					push_back(c);
+				// _capacity = sz;
+				pointer tmp = _alloc.allocate(sz);
+				for (size_type i = 0; i < sz; i++) {
+					if (i < _size)
+						_alloc.construct(tmp + i, _elements[i]);
+					else
+						_alloc.construct(tmp + i, c);
+				}
+				if (_elements)
+					_alloc.deallocate(_elements, _capacity);
+				_capacity = sz;
+				_size = sz;
+				_elements = tmp;
 			}
 		}
 
@@ -217,8 +233,11 @@ class vector
 				pointer tmp = _alloc.allocate(n);
 				for (size_type i = 0; i < _size; i++)
 					_alloc.construct(tmp + i, _elements[i]);
+				size_type sz = _size;
 				clear();
-				_alloc.deallocate(_elements, _capacity);
+				_size = sz;
+				if (_elements)
+					_alloc.deallocate(_elements, _capacity);
 				_capacity = n;
 				_elements = tmp;
 			}
@@ -308,7 +327,7 @@ class vector
 
 		void insert(iterator position, size_type n, const_reference x) {
 			size_type pos = position - _elements;
-			if (pos > _size || n < 1)
+			if (pos > _size)
 				return ;
 			if (_size + n <= _capacity) {
 				for (size_type i = _size - 1; i >= pos; --i) {
@@ -326,17 +345,18 @@ class vector
 				_size += n;
 			}
 			else if (_size + n > _capacity) {
-				_capacity += n;
-				pointer tmp = _alloc.allocate(_capacity);
+				size_type newCap = n > _size ? _size + n : _size * 2;
+				pointer tmp = _alloc.allocate(newCap);
 				for (size_type i = 0; i < pos; i++)
 					_alloc.construct(tmp + i, _elements[i]);
 				for (size_type i = pos; i < pos + n; i++)
 					_alloc.construct(tmp + i, x);
-				for (size_type i = pos + n; i < _size + (n - 1); i ++)
+				for (size_type i = pos + n; i < _size + n ; i ++)
 					_alloc.construct(tmp + i, _elements[i - n]);
 				size_type sz = _size;
 				clear();
-				_alloc.deallocate(_elements, _capacity - n);
+				_alloc.deallocate(_elements, _capacity);
+				_capacity = newCap;
 				_elements = tmp;
 				_size = sz + n;
 			}
@@ -368,8 +388,8 @@ class vector
 				_size += n;
 			}
 			else if (_size + n > _capacity) {
-				_capacity += n;
-				pointer tmp = _alloc.allocate(_capacity);
+				size_type newCap = n > _size ? _size + n : _size * 2;
+				pointer tmp = _alloc.allocate(newCap);
 				for (size_type i = 0; i < pos; i++)
 					_alloc.construct(tmp + i, _elements[i]);
 				for (size_type i = pos; i < pos + n; i++)
@@ -378,7 +398,8 @@ class vector
 					_alloc.construct(tmp + i, _elements[i - n]);
 				size_type sz = _size;
 				clear();
-				_alloc.deallocate(_elements, _capacity - dis);
+				_alloc.deallocate(_elements, _capacity);
+				_capacity = newCap;
 				_elements = tmp;
 				_size = sz + n;
 			}
@@ -419,7 +440,10 @@ class vector
 		}
 
 		void swap(vector& other) {
-			std::swap(*this, other);
+
+			std::swap(_elements, other._elements);
+			std::swap(_size, other._size);
+			std::swap(_capacity, other._capacity);
 		}
 
 		void clear() {
@@ -432,7 +456,7 @@ class vector
 
 	template <class T, class Allocator>
 	bool operator == (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
-		return (x.size() == y.size() && std::equal(x.begin(), y.end(), x.begin()));
+		return (x.size() == y.size() && std::equal(x.begin(), x.end(), y.begin()));
 	}
 
 	template <class T, class Allocator>
@@ -442,22 +466,22 @@ class vector
 
 	template <class T, class Allocator>
 	bool operator < (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
-		return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
+		return ft::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 	}
 
 	template <class T, class Allocator>
 	bool operator > (const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
-		return lexicographical_compare(y.begin(), y.end(), x.begin(), x.end());
+		return (y < x);
 	}
 
 	template <class T, class Allocator>
 	bool operator>=(const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
-		return (x > y || x == y);
+		return !(x < y);
 	}
 
 	template <class T, class Allocator>
 	bool operator<=(const vector<T,Allocator>& x, const vector<T,Allocator>& y) {
-		return (x < y || x == y);
+		return !(y < x);
 	}
 
 	// specialized algorithms:
