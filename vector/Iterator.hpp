@@ -93,13 +93,13 @@ namespace ft {
 				return _p < other._p;
 			}
 			bool operator > (const Iterator &other) {
-				return _p > other._p;
+				return other._p < _p;
 			}
 			bool operator <= (const Iterator &other) {
-				return _p <= other._p;
+				return !(other._p > _p);
 			}
 			bool operator >= (const Iterator &other) {
-				return _p >= other._p;
+				return !(_p < other._p);
 			}
 			// operator for conversion from 'Iterator<int>' to Iterator<const int>'
 			operator Iterator<const T> () {
