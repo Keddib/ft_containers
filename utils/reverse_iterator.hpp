@@ -56,11 +56,11 @@ class reverse_iterator
 
 		reverse_iterator  operator--(int) {
 			iterator_type tmp(_current++);
-			return tmp;
+			return reverse_iterator(tmp);
 		}
 
 		reverse_iterator  operator+ (difference_type n) const {
-			return iterator_type(_current - n);
+			return reverse_iterator(iterator_type(_current - n));
 		}
 
 		reverse_iterator& operator+=(difference_type n) {
@@ -69,7 +69,7 @@ class reverse_iterator
 		}
 
 		reverse_iterator  operator - (difference_type n) const {
-			return iterator_type(_current + n);
+			return reverse_iterator(iterator_type(_current + n));
 		}
 
 		reverse_iterator& operator-=(difference_type n) {
