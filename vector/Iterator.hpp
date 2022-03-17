@@ -70,13 +70,13 @@ namespace ft {
 				return tmp;
 			}
 
-			pointer operator + ( size_t n) {
+			pointer operator + ( size_t n) const {
 				return _p + n;
 			}
 			pointer operator += ( size_t n) {
 				return _p += n;
 			}
-			pointer operator - ( size_t n) {
+			pointer operator - ( size_t n) const {
 				return _p - n;
 			}
 			pointer operator -= ( size_t n) {
@@ -85,20 +85,20 @@ namespace ft {
 			friend pointer operator + (size_t n, const Iterator &iter) {
 				return iter._p + n;
 			}
-			difference_type operator - (const Iterator &other) {
+			difference_type operator - (const Iterator &other) const {
 				return _p - other._p;
 			}
 
-			bool operator < (const Iterator &other) {
+			bool operator < (const Iterator &other) const {
 				return _p < other._p;
 			}
-			bool operator > (const Iterator &other) {
+			bool operator > (const Iterator &other) const {
 				return other._p < _p;
 			}
-			bool operator <= (const Iterator &other) {
-				return !(other._p > _p);
+			bool operator <= (const Iterator &other) const {
+				return (_p <= other._p);
 			}
-			bool operator >= (const Iterator &other) {
+			bool operator >= (const Iterator &other) const {
 				return !(_p < other._p);
 			}
 			// operator for conversion from 'Iterator<int>' to Iterator<const int>'
