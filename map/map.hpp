@@ -1,6 +1,8 @@
 #ifndef FT_MAP_HPP
 #define FT_MAP_HPP
 
+#include "../utils/pair.hpp"
+#include "RBT.hpp"
 #include <memory>
 #include <algorithm>
 #include <map>
@@ -8,13 +10,13 @@
 namespace ft
 {
 
-template <class Key, class T, class Compare = std::less<Key>, class Allocator = std::allocator<std::pair<const Key, T> > >
+template <typename Key, typename T, typename Compare = std::less<Key>, typename Allocator = std::allocator<ft::pair<const Key, T> > >
 class map {
 
 	public: // types:
 		typedef Key											key_type;
 		typedef T											mapped_type;
-		typedef std::pair<const Key, T>						value_type;
+		typedef pair<const Key, T>							value_type;
 		typedef Compare										key_compare;
 		typedef Allocator									allocator_type;
 		typedef typename allocator_type::size_type			size_type;
@@ -28,9 +30,12 @@ class map {
 		// typedef ft::reverse_iterator<iterator>			reverse_iterator;
 		// typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
+	private:
+
+		RBT<value_type, Allocator> _Tree;
 
 
-
+	public:
 		// iterators:
 		// iterator begin();
 		// const_iterator begin()const;
@@ -77,9 +82,9 @@ class map {
 		iterator		upper_bound(const key_type& x);
 		const_iterator	upper_bound(const key_type& x)	const;
 
-		std::pair<iterator,iterator>
+		ft::pair<iterator,iterator>
 			equal_range(const key_type& x);
-		std::pair<const_iterator,const_iterator>
+		ft::pair<const_iterator,const_iterator>
 			equal_range(const key_type& x) const;
 
 };
