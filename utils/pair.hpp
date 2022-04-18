@@ -9,7 +9,7 @@ struct pair
 	// types
 	typedef T1 first_type;
 	typedef T2 second_type;
-	// memeber variables
+	// memeber variables`
 	first_type first;
 	second_type second;
 
@@ -77,6 +77,6 @@ pair<T1,T2> make_pair (T1 x, T2 y)
 }
 
 
-}
+} // ft
 
 #endif
