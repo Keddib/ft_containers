@@ -30,12 +30,7 @@ namespace ft {
 				return *this;
 			}
 
-			bool operator == (const Iterator &other ) {
-				return _p == other._p;
-			}
-			bool operator != (const Iterator &other ) {
-				return ! (_p == other._p);
-			}
+
 			reference operator * () const{
 				return *_p;
 			}
@@ -73,33 +68,55 @@ namespace ft {
 			pointer operator + ( size_t n) const {
 				return _p + n;
 			}
+
 			pointer operator += ( size_t n) {
 				return _p += n;
 			}
+
 			pointer operator - ( size_t n) const {
 				return _p - n;
 			}
+
 			pointer operator -= ( size_t n) {
 				return _p -= n;
 			}
+
 			friend pointer operator + (size_t n, const Iterator &iter) {
 				return iter._p + n;
 			}
-			difference_type operator - (const Iterator &other) const {
+
+			template<typename It>
+			difference_type operator - (const Iterator<It> &other) const {
 				return _p - other._p;
 			}
 
-			bool operator < (const Iterator &other) const {
-				return _p < other._p;
+			template<typename It1, typename It2>
+			friend bool operator == (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return __x._p == __y._p;
 			}
-			bool operator > (const Iterator &other) const {
-				return other._p < _p;
+
+			template<typename It1, typename It2>
+			friend bool operator != (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return ! (__x == __y);
 			}
-			bool operator <= (const Iterator &other) const {
-				return (_p <= other._p);
+
+			template<typename It1, typename It2>
+			friend bool operator < (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return __x._p < __y._p;
 			}
-			bool operator >= (const Iterator &other) const {
-				return !(_p < other._p);
+
+			template<typename It1, typename It2>
+			friend bool operator > (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return __y < __x;
+			}
+
+			template<typename It1, typename It2>
+			friend bool operator <= (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return !(__y < __x);
+			}
+			template<typename It1, typename It2>
+			friend bool operator >= (const Iterator<It1> &__x, const Iterator<It2> &__y) {
+				return !(__x < __y);
 			}
 			// operator for conversion from 'Iterator<int>' to Iterator<const int>'
 			operator Iterator<const T> () {
