@@ -15,7 +15,7 @@ struct pair
 
 	// constructors
 
-	pair(); // defualt
+	pair(): first(), second() {} // defualt
 
 	pair (const first_type& a, const second_type& b) // initialization
 	: first(a), second(b) {}
