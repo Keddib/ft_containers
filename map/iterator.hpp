@@ -79,7 +79,7 @@ class map_iterator: public std::iterator <std::bidirectional_iterator_tag, typen
 			map_iterator tmp (*this);
 
 			if (_node == _tree->nil ())
-				_node = _tree->extrem_right (_tree->root ());
+				_node = _tree->maximum (_tree->root ());
 			else
 				_node = _tree->predecessor (_node);
 			return (tmp);
