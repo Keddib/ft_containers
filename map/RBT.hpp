@@ -134,7 +134,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 					x = x->right;
 				else {
 					this->_delete_node(z);
-					return std::make_pair(x, false);
+					// return make_pair(x, false);
+					return ft::make_pair(x, false);
 				}
 			}
 			z->p = y;
@@ -148,7 +149,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 			z->color = RED;
 			insertFIXUP(z);
 			_size++;
-			return std::make_pair(z, true);
+			// return make_pair(z, true);
+			return ft::make_pair(z, false);
 		}
 
 		int deleteNode(const Key &key) {
