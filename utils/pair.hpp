@@ -9,6 +9,7 @@ struct pair
 	// types
 	typedef T1 first_type;
 	typedef T2 second_type;
+
 	// memeber variables`
 	first_type first;
 	second_type second;
@@ -21,7 +22,7 @@ struct pair
 	: first(a), second(b) {}
 
 	template<class U, class V>
-	pair (const pair<U,V>& pr) // copy
+	pair (const pair<U, V>& pr) // copy
 	: first(pr.first), second(pr.second) {}
 
 	pair& operator = (const pair& pr) {
