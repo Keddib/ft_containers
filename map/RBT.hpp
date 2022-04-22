@@ -4,7 +4,7 @@
 #define BLACK 0
 #define RED 1
 
-
+#include <iostream>
 #include <memory>
 
 namespace ft {
@@ -14,10 +14,10 @@ template <typename _Tp >
 struct node {
 
 	_Tp value;
-	bool color;
 	node *p; //parent
 	node *left; // left child
 	node *right; // right child;
+	bool color;
 	node (const _Tp &x = _Tp(), node *par = NULL, node *lef = NULL, node *ri = NULL, bool col = BLACK)
 	: value(x), p(par), left(lef), right(ri), color(col) {}
 };
@@ -93,6 +93,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 		typedef	typename T::second_type							Value;
 		typedef Compare											key_compare;
 		typedef node<T>											Node;
+		typedef Node*											pointer;
 		typedef _RBT_base<T, Alloc>								Base;
 		typedef typename Base::size_type						size_type;
 		// typedef _RBT_base<T, Alloc>::_Node_Alloc_type			node_alloc_type;
@@ -105,7 +106,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 		size_t	_size;
 
 	public:
-		RBT(const key_compare &c = key_compare(), const Alloc &a = Alloc()): _Com(c), _A(a), Base(_A){
+		RBT(const key_compare &c = key_compare(), const Alloc &a = Alloc()): Base(a), _Com(c), _A(a){
 			_NIL = this->_create_node();
 			_root = _NIL;
 			_size = 0;
@@ -264,7 +265,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return y;
 		}
 
-		Node *lower_bound(const value_type &key) {
+		Node *lower_bound(const Key &key) const{
 			Node *x = _root;
 			Node *y = _NIL;
 			while (x != _NIL) {
@@ -280,9 +281,9 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return y;
 		}
 
-		Node *upper_bound(const value_type &key) {
+		Node *upper_bound(const Key &key) const{
 			Node *x = lower_bound(key);
-			if (!_Com(x->value, key) && !_Com(key, x->value))
+			if (!_Com(x->value.first, key) && !_Com(key, x->value.first))
 				return successor(x);
 			return (x);
 		}
@@ -301,7 +302,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 
 		size_t size() const { return _size; }
 
-		key_compare  key_comp() { return _Com; }
+		key_compare  key_comp() const { return _Com; }
 
 		void printBT(const std::string& prefix, const Node * root, bool isLeft)
 		{
