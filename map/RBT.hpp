@@ -118,12 +118,12 @@ class RBT : protected _RBT_base<T, Alloc> {
 			_NIL = NULL;
 		}
 
-		std::pair<Node*, bool> insert(const value_type &x) {
+		pair<Node*, bool> insert(const value_type &x) {
 			Node *z = this->_create_node(x);
 			return insert(z);
 		}
 
-		std::pair<Node*, bool> insert(Node *z) { // check duplication
+		pair<Node*, bool> insert(Node *z) { // check duplication
 			Node *y = _NIL;
 			Node *x = _root;
 			while (x != _NIL) {
@@ -203,7 +203,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 				else if (_Com(tmp->value.first, key))
 					tmp = tmp->right;
 				else
-					return _NIL;
+					return tmp;
 			}
 			return tmp;
 		}
@@ -262,15 +262,38 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return y;
 		}
 
+		Node *lower_bound(const value_type &key) {
+			Node *x = _root;
+			Node *y = _NIL;
+			while (x != _NIL) {
+				if (_Com(key, x->value.first)) {
+					y = x;
+					x = x->left;
+				}
+				else if (_Com(x->value.first, key))
+					x = x->right;
+				else
+					return x;
+			}
+			return y;
+		}
+
+		Node *upper_bound(const value_type &key) {
+			Node *x = lower_bound(key);
+			if (!_Com(x->value, key) && !_Com(key, x->value))
+				return successor(x);
+			return (x);
+		}
+
 		void clear() {
 			clear(_root);
 			_root = _NIL;
 			_size = 0;
 		}
 
-		const Node *nil() const { return	_NIL; }
+		Node* const nil() const { return	_NIL; }
 
-		const Node *root() const { return	_root; }
+		Node* const root() const { return	_root; }
 
 		size_type	max_size() const { return Base::max_size(); }
 

@@ -10,7 +10,7 @@ template <typename RBT>
 class map_iterator: public std::iterator <std::bidirectional_iterator_tag, typename RBT::value_type> {
 
 
-	typedef	typename RBT::value_type*		node_ptr;
+	typedef	typename RBT::Node*		node_ptr;
 
 
 	public:
@@ -26,9 +26,11 @@ class map_iterator: public std::iterator <std::bidirectional_iterator_tag, typen
 		node_ptr		_node;
 
 	public:
-		map_iterator (const RBT* tree = 0x0, node_ptr node = 0x0): _tree (tree), _node (node) {};
+		map_iterator (const RBT* tree = 0x0, node_ptr const node = 0x0): _tree (tree), _node (node) {};
 
 		map_iterator (const map_iterator& x): _tree (x._tree), _node (x._node) {}
+
+		~map_iterator(){}
 
 		template <typename T>
 		operator map_iterator<T> () { return map_iterator<T> (reinterpret_cast <const T*> (_tree) , reinterpret_cast <typename T::pointer> (_node)); }
