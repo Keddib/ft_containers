@@ -126,15 +126,11 @@ namespace ft
 			}
 		}
 
-		void erase(iterator position)
-		{
-			Node *z = position.get_node();
-			if (z)
-				_Tree.deleteNode(z);
+		void erase(iterator position) {
+			_Tree.deleteNode((*position).first);
 		}
 
-		size_type erase(const key_type &x)
-		{
+		size_type erase(const key_type &x) {
 			return _Tree.deleteNode(x);
 		}
 
@@ -142,7 +138,7 @@ namespace ft
 		{
 			while (first != last) {
 				iterator it(&_Tree, _Tree.successor(first.get_node()));
-				_Tree.deleteNode(first.get_node());
+				_Tree.deleteNode((*first).first);
 				first = it;
 			}
 		}
