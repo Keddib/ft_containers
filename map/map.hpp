@@ -53,11 +53,28 @@ namespace ft
 				_Tree.insert(*first++);
 		}
 
-		// map(const map<Key,T,Compare,Allocator>& x);
+		map(const map<Key,T,Compare,Allocator>& x)
+		: _Tree(x.key_comp(), x.get_allocator())
+		{
+			*this = x;
+		}
 
 		~map(){};
 
-		// map<Key,T,Compare,Allocator>& operator=(const map<Key,T,Compare,Allocator>& x);
+		map<Key,T,Compare,Allocator>& operator=(const map<Key,T,Compare,Allocator>& x) {
+
+			if (this != &x) {
+				_Tree.clear();
+				const_iterator be = x.begin();
+				const_iterator end = x.end();
+				while (be != end) {
+
+					this->insert(*be);
+					++be;
+				}
+			}
+			return *this;
+		}
 
 		// iterators:
 		iterator begin() { return iterator(&_Tree, _Tree.minimum()); }
@@ -111,7 +128,9 @@ namespace ft
 
 		void erase(iterator position)
 		{
-			_Tree.deleteNode(position.get_node());
+			Node *z = position.get_node();
+			if (z)
+				_Tree.deleteNode(z);
 		}
 
 		size_type erase(const key_type &x)
