@@ -7,65 +7,69 @@
 #include <iostream>
 #include <memory>
 
-namespace ft {
+namespace ft
+{
 
-// node struct
-template <typename _Tp >
-struct node {
+	// node struct
+	template <typename _Tp>
+	struct node
+	{
 
-	_Tp value;
-	node *p; //parent
-	node *left; // left child
-	node *right; // right child;
-	bool color;
-	node (const _Tp &x = _Tp(), node *par = NULL, node *lef = NULL, node *ri = NULL, bool col = BLACK)
-	: value(x), p(par), left(lef), right(ri), color(col) {}
-};
+		_Tp value;
+		node *p;	 // parent
+		node *left;	 // left child
+		node *right; // right child;
+		bool color;
+		node(const _Tp &x = _Tp(), node *par = NULL, node *lef = NULL, node *ri = NULL, bool col = BLACK)
+			: value(x), p(par), left(lef), right(ri), color(col) {}
+	};
 
-
-template<typename _Tp, typename _Alloc>
+template <typename _Tp, typename _Alloc>
 class _RBT_base
 {
 	protected:
-	// NOTA BENE
-	// The stored instance is not actually of "allocator_type"'s
-	// type.  Instead we rebind the type to
-	// Allocator<node<Tp>>, which should probably be the same.
-	// List_node<Tp> is not the same
-	// size as Tp (it's 3 [p, left, right] pointers larger), and specializations on
-	// Tp may go unused because List_node<Tp> is being bound
-	// instead.
-	//
+		// NOTA BENE
+		// The stored instance is not actually of "allocator_type"'s
+		// type.  Instead we rebind the type to
+		// Allocator<node<Tp>>, which should probably be the same.
+		// List_node<Tp> is not the same
+		// size as Tp (it's 3 [p, left, right] pointers larger), and specializations on
+		// Tp may go unused because List_node<Tp> is being bound
+		// instead.
+		//
 
-		typedef typename _Alloc::template rebind<node<_Tp> >::other	_Node_Alloc_type;
-		typedef typename _Node_Alloc_type::size_type				size_type;
-		typedef node<_Tp>											Node;
+		typedef typename _Alloc::template rebind<node<_Tp> >::other _Node_Alloc_type;
+		typedef typename _Node_Alloc_type::size_type size_type;
+		typedef node<_Tp> Node;
+		typedef _Alloc allocator_type;
 
 		_Node_Alloc_type _N_Alloc;
 
-		Node* _M_get_node()
-		{ return _N_Alloc.allocate(1); }
-
-		void	_M_put_node(Node* __p)
-		{ _N_Alloc.deallocate(__p, 1); }
-
 	protected:
-		typedef _Alloc allocator_type;
-
-		allocator_type get_allocator() const { return allocator_type(); }
-		size_type max_size() const { return _N_Alloc.max_size() ; }
-
-		_RBT_base(const allocator_type& __a) : _N_Alloc(__a) { }
+		_RBT_base(const allocator_type &__a) : _N_Alloc(__a) {}
 
 		~_RBT_base() {}
 
-		Node* _create_node(const _Tp& __x = _Tp())
+
+		Node *_M_get_node()
 		{
-			Node* p = this->_M_get_node();
-			try {
+			return _N_Alloc.allocate(1);
+		}
+
+		void _M_put_node(Node *__p)
+		{
+			_N_Alloc.deallocate(__p, 1);
+		}
+
+		Node *_create_node(const _Tp &__x = _Tp())
+		{
+			Node *p = this->_M_get_node();
+			try
+			{
 				_N_Alloc.construct(p, Node(__x));
 			}
-			catch(...) {
+			catch (...)
+			{
 				_M_put_node(p);
 				// __throw_exception_again;
 			}
@@ -73,67 +77,102 @@ class _RBT_base
 		}
 		void _delete_node(Node *p)
 		{
-			try {
+			try
+			{
 				_N_Alloc.destroy(p);
 			}
-			catch(...) {
+			catch (...)
+			{
 				// __throw_exception_again;
 			}
 			_M_put_node(p);
 		}
+
+	public:
+		size_type max_size() const { return _N_Alloc.max_size(); }
 };
 
-
-template <typename T, typename Compare, typename Alloc = std::allocator<T> >
-class RBT : protected _RBT_base<T, Alloc> {
+	template <typename T, typename Compare, typename Alloc = std::allocator<T> >
+	class RBT : protected _RBT_base<T, Alloc>
+	{
 
 	public: // types
-		typedef	T												value_type;
-		typedef	typename T::first_type							Key;
-		typedef	typename T::second_type							Value;
-		typedef Compare											key_compare;
-		typedef node<T>											Node;
-		typedef Node*											pointer;
-		typedef _RBT_base<T, Alloc>								Base;
-		typedef typename Base::size_type						size_type;
-		// typedef _RBT_base<T, Alloc>::_Node_Alloc_type			node_alloc_type;
+		typedef T value_type;
+		typedef typename T::first_type Key;
+		typedef typename T::second_type Value;
+		typedef Compare key_compare;
+		typedef node<T> Node;
+		typedef Node *pointer;
+		typedef _RBT_base<T, Alloc> Base;
+		typedef typename Base::size_type size_type;
 
 	private: // atributes
 		Node *_NIL;
 		Node *_root;
 		key_compare _Com;
 		Alloc _A;
-		size_t	_size;
+		size_t _size;
 
 	public:
-		RBT(const key_compare &c = key_compare(), const Alloc &a = Alloc()): Base(a), _Com(c), _A(a){
+		RBT(const key_compare &c = key_compare(), const Alloc &a = Alloc())
+			: Base(a), _Com(c), _A(a)
+		{
 			_NIL = this->_create_node();
 			_root = _NIL;
 			_size = 0;
 		}
 
-		~RBT() {
+		RBT(const RBT &x)
+			: Base(x._A), _Com(x._Com), _A(x._A)
+		{
+			_NIL = this->_create_node();
+			_root = x.clone(x._root, _NIL, Base::_N_Alloc);
+			_root->p = _NIL;
+			_size = x._size;
+		}
+
+		RBT &operator=(const RBT &x)
+		{
+			if (this != &x)
+			{
+				_size = x._size;
+				_Com = x._Com;
+				_A = x._A;
+				Base::_N_Alloc = x.Base::_N_Alloc;
+				clear(_root);
+				_root = x.clone(x._root, _NIL, Base::_N_Alloc);
+				_root->p = _NIL;
+			}
+			return (*this);
+		}
+
+		~RBT()
+		{
 			clear(_root);
 			this->_delete_node(_NIL);
 			_root = NULL;
 			_NIL = NULL;
 		}
 
-		pair<Node*, bool> insert(const value_type &x) {
+		pair<Node *, bool> insert(const value_type &x)
+		{
 			Node *z = this->_create_node(x);
 			return insert(z);
 		}
 
-		pair<Node*, bool> insert(Node *z) { // check duplication
+		pair<Node *, bool> insert(Node *z)
+		{ // check duplication
 			Node *y = _NIL;
 			Node *x = _root;
-			while (x != _NIL) {
+			while (x != _NIL)
+			{
 				y = x;
-				if  (_Com(z->value.first, x->value.first)) // <
+				if (_Com(z->value.first, x->value.first)) // <
 					x = x->left;
 				else if (_Com(x->value.first, z->value.first))
 					x = x->right;
-				else {
+				else
+				{
 					this->_delete_node(z);
 					// return make_pair(x, false);
 					return ft::make_pair(x, false);
@@ -141,10 +180,11 @@ class RBT : protected _RBT_base<T, Alloc> {
 			}
 			z->p = y;
 			if (y == _NIL)
-				_root =z;
-			else if(z->value.first < y->value.first)
+				_root = z;
+			else if (z->value.first < y->value.first)
 				y->left = z;
-			else y->right = z;
+			else
+				y->right = z;
 			z->left = _NIL;
 			z->right = _NIL;
 			z->color = RED;
@@ -154,9 +194,11 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return ft::make_pair(z, false);
 		}
 
-		int deleteNode(const Key &key) {
+		int deleteNode(const Key &key)
+		{
 			Node *z = search(key);
-			if (z != _NIL) {
+			if (z != _NIL)
+			{
 				deleteNode(z);
 				_size--;
 				return 1;
@@ -164,25 +206,31 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return 0;
 		}
 
-		void deleteNode(Node *z) {
+		void deleteNode(Node *z)
+		{
 			Node *y = z;
 			Node *x;
 			bool OriginalColor = y->color;
-			if (z->left == _NIL) {
+			if (z->left == _NIL)
+			{
 				x = z->right;
 				TRANSPLANT(z, z->right);
 			}
-			else if (z->right == _NIL) {
+			else if (z->right == _NIL)
+			{
 				x = z->left;
 				TRANSPLANT(z, z->left);
-			} else {
+			}
+			else
+			{
 				y = minimum(z->right);
 				OriginalColor = y->color;
 				x = y->right;
 				if (y->p == z)
 					x->p = y;
-				else {
-					TRANSPLANT(y , y->right);
+				else
+				{
+					TRANSPLANT(y, y->right);
 					y->right = z->right;
 					y->right->p = y;
 				}
@@ -199,7 +247,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 		Node *search(const Key &key) const
 		{
 			Node *tmp = _root;
-			while ( tmp != _NIL )
+			while (tmp != _NIL)
 			{
 				if (_Com(key, tmp->value.first))
 					tmp = tmp->left;
@@ -211,7 +259,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return tmp;
 		}
 
-		Node *minimum() const {
+		Node *minimum() const
+		{
 			return minimum(_root);
 		}
 
@@ -225,7 +274,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return tmp;
 		}
 
-		Node *maximum() const {
+		Node *maximum() const
+		{
 			return maximum(_root);
 		}
 
@@ -245,7 +295,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 			if (x->right != _NIL)
 				return minimum(x->right);
 			Node *y = x->p;
-			while (y != _NIL && x == y->right){
+			while (y != _NIL && x == y->right)
+			{
 				x = y;
 				y = y->p;
 			}
@@ -258,18 +309,22 @@ class RBT : protected _RBT_base<T, Alloc> {
 			if (x->left != _NIL)
 				return maximum(x->left);
 			Node *y = x->p;
-			while (y != _NIL && x != y->right){
+			while (y != _NIL && x != y->right)
+			{
 				x = y;
 				y = y->p;
 			}
 			return y;
 		}
 
-		Node *lower_bound(const Key &key) const{
+		Node *lower_bound(const Key &key) const
+		{
 			Node *x = _root;
 			Node *y = _NIL;
-			while (x != _NIL) {
-				if (_Com(key, x->value.first)) {
+			while (x != _NIL)
+			{
+				if (_Com(key, x->value.first))
+				{
 					y = x;
 					x = x->left;
 				}
@@ -281,62 +336,73 @@ class RBT : protected _RBT_base<T, Alloc> {
 			return y;
 		}
 
-		Node *upper_bound(const Key &key) const{
+		Node *upper_bound(const Key &key) const
+		{
 			Node *x = lower_bound(key);
 			if (!_Com(x->value.first, key) && !_Com(key, x->value.first))
 				return successor(x);
 			return (x);
 		}
 
-		void clear() {
+		void clear()
+		{
 			clear(_root);
 			_root = _NIL;
 			_size = 0;
 		}
 
-		Node* const nil() const { return	_NIL; }
+		void swap(RBT &x)
+		{
+			std::swap(_NIL, x._NIL);
+			std::swap(_root, x._root);
+			std::swap(_size, x._size);
+			std::swap(_A, x._A);
+			std::swap(_Com, x._Com);
+		}
 
-		Node* const root() const { return	_root; }
+		Node *const nil() const { return _NIL; }
 
-		size_type	max_size() const { return Base::max_size(); }
+		Node *const root() const { return _root; }
+
+		size_type max_size() const { return Base::max_size(); }
 
 		size_t size() const { return _size; }
 
-		key_compare  key_comp() const { return _Com; }
-
-		void printBT(const std::string& prefix, const Node * root, bool isLeft)
-		{
-		    if( root != _NIL )
-		    {
-		        std::cout << prefix;
-		        std::cout << (isLeft ? "├──" : "└──" );
-		        // print the value of the node
-		        std::cout << root->value.first << ':' << (root->color ? 'R' : 'B') << std::endl;
-		        // enter the next tree level - left and right branch
-		        printBT( prefix + (isLeft ? "│   " : "    "), root->left, true);
-		        printBT( prefix + (isLeft ? "│   " : "    "), root->right, false);
-		    }
-		}
-
-		void printBT()
-		{
-		    printBT("", _root, false);
-		}
+		key_compare key_comp() const { return _Com; }
 
 	private: // mem functions
-
-		void clear(Node* node)
+		// clone a new tree from the subtree rooted at x
+		// and use new_nil as the new sentinel in case
+		// we have different trees
+		Node *clone(Node *x, Node *nil, typename Base::_Node_Alloc_type &alloc) const
 		{
-			if (node == _NIL) return;
+			if (x == _NIL)
+				return nil;
+			Node *_node = alloc.allocate(1);
+			alloc.construct(_node, *x);
+			_node->left = clone(x->left, nil, alloc);
+			if (_node->left != nil)
+				_node->left->p = _node->left;
+			_node->right = clone(x->right, nil, alloc);
+			if (_node->right != nil)
+				_node->right->p = _node->right;
+			return _node;
+		}
+
+		void clear(Node *node)
+		{
+			if (node == _NIL)
+				return;
 
 			/* first delete both subtrees */
 			clear(node->left);
 			clear(node->right);
 			/* then delete the node */
-			this->_delete_node( node );
+			this->_delete_node(node);
 		}
 
-		void TRANSPLANT(Node *u, Node *v) {
+		void TRANSPLANT(Node *u, Node *v)
+		{
 			if (u->p == _NIL)
 				_root = v;
 			else if (u->p->left == u)
@@ -357,7 +423,8 @@ class RBT : protected _RBT_base<T, Alloc> {
 				_root = y;
 			if (x == x->p->left)
 				x->p->left = y;
-			else x->p->right = y;
+			else
+				x->p->right = y;
 			y->left = x;
 			x->p = y;
 		}
@@ -373,26 +440,32 @@ class RBT : protected _RBT_base<T, Alloc> {
 				_root = y;
 			if (x == x->p->left)
 				x->p->left = y;
-			else x->p->right = y;
+			else
+				x->p->right = y;
 			y->right = x;
 			x->p = y;
 		}
 
-		void insertFIXUP(Node *z) {
+		void insertFIXUP(Node *z)
+		{
 
-			while (z->p->color == RED) {
+			while (z->p->color == RED)
+			{
 
 				if (z->p == z->p->p->left)
 				{
 					Node *y = z->p->p->right;
-					if (y->color == RED) { // recolor
+					if (y->color == RED)
+					{ // recolor
 						z->p->color = BLACK;
 						y->color = BLACK;
 						z->p->p->color = RED;
 						z = z->p->p;
 					}
-					else{ // do suitablle rotation and recolor
-						if (z == z->p->right) { // LR
+					else
+					{ // do suitablle rotation and recolor
+						if (z == z->p->right)
+						{ // LR
 							z = z->p;
 							LEFT_ROTATE(z);
 						}
@@ -401,46 +474,56 @@ class RBT : protected _RBT_base<T, Alloc> {
 						RIGHT_ROTATE(z->p->p);
 					}
 				}
-				else { // z.p == z.p.p.right
+				else
+				{ // z.p == z.p.p.right
 					Node *y = z->p->p->left;
-					if (y->color == RED) { // recolor
+					if (y->color == RED)
+					{ // recolor
 						z->p->color = BLACK;
 						y->color = BLACK;
 						z->p->p->color = RED;
 						z = z->p->p;
 					}
-					else { // do suitablle rotation and recolor
-						if (z == z->p->left) { // RL
+					else
+					{ // do suitablle rotation and recolor
+						if (z == z->p->left)
+						{ // RL
 							z = z->p;
-							RIGHT_ROTATE( z);
+							RIGHT_ROTATE(z);
 						}
 						z->p->color = BLACK; // RR
 						z->p->p->color = RED;
-						LEFT_ROTATE( z->p->p);
+						LEFT_ROTATE(z->p->p);
 					}
 				}
 			}
 			_root->color = BLACK;
 		}
-		void deleteFIXUP(Node *x) {
+		void deleteFIXUP(Node *x)
+		{
 
 			while (x != _root and x->color == BLACK)
 			{
-				if (x == x->p->left) {
+				if (x == x->p->left)
+				{
 					Node *w = x->p->right;
-					if (w->color == RED) {
+					if (w->color == RED)
+					{
 						w->color = BLACK;
 						x->p->color = RED;
 						LEFT_ROTATE(x->p);
 						w = x->p->right;
 					}
-					if (w->left->color == BLACK && w->right->color == BLACK) {
+					if (w->left->color == BLACK && w->right->color == BLACK)
+					{
 						w->color = RED;
 						x = x->p;
 					}
-					else {
+					else
+					{
 
-						if (w->right->color == BLACK) {
+						if (w->right->color == BLACK)
+						{
 							w->left->color = BLACK;
 							w->color = RED;
 							RIGHT_ROTATE(w);
@@ -453,22 +536,27 @@ class RBT : protected _RBT_base<T, Alloc> {
 						x = _root;
 					}
 				}
-				else {
+				else
+				{
 
 					Node *w = x->p->left;
-					if (w->color == RED) {
+					if (w->color == RED)
+					{
 						w->color = BLACK;
 						x->p->color = RED;
 						RIGHT_ROTATE(x->p);
 						w = x->p->left;
 					}
-					if (w->right->color == BLACK && w->left->color == BLACK) {
+					if (w->right->color == BLACK && w->left->color == BLACK)
+					{
 						w->color = RED;
 						x = x->p;
 					}
-					else {
+					else
+					{
 
-						if (w->left->color == BLACK) {
+						if (w->left->color == BLACK)
+						{
 							w->right->color = BLACK;
 							w->color = RED;
 							LEFT_ROTATE(w);
@@ -484,8 +572,27 @@ class RBT : protected _RBT_base<T, Alloc> {
 			}
 			x->color = BLACK;
 		}
-		RBT(const RBT& );
-};
+
+	public:
+		void printBT(const std::string &prefix, const Node *root, bool isLeft)
+		{
+			if (root != _NIL)
+			{
+				std::cout << prefix;
+				std::cout << (isLeft ? "├──" : "└──");
+				// print the value of the node
+				std::cout << root->value.first << ':' << (root->color ? 'R' : 'B') << std::endl;
+				// enter the next tree level - left and right branch
+				printBT(prefix + (isLeft ? "│   " : "    "), root->left, true);
+				printBT(prefix + (isLeft ? "│   " : "    "), root->right, false);
+			}
+		}
+
+		void printBT()
+		{
+			printBT("", _root, false);
+		}
+	};
 
 } // ft
 
