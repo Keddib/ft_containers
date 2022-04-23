@@ -3,6 +3,7 @@
 
 #include "../utils/pair.hpp"
 #include "../utils/reverse_iterator.hpp"
+#include "../utils/lexicographical_compare.hpp"
 #include "iterator.hpp"
 #include "RBT.hpp"
 #include <memory>
@@ -10,11 +11,18 @@
 namespace ft
 {
 
-	template <typename Key, typename T, typename Compare = std::less<Key>, typename Allocator = std::allocator<pair<const Key, T> > >
-	class map
-	{
+template <
+			typename Key,
+			typename T,
+			typename Compare = std::less<Key>,
+			typename Allocator = std::allocator<pair<const Key, T> >
+		>
+class map
+{
 
 	private:
+		class	value_compare;
+
 		typedef RBT<pair<const Key, T>, Compare, Allocator> _RBT;
 		typedef RBT<const pair<const Key, T>, Compare, Allocator> const_RBT;
 		typedef typename _RBT::Node Node;
@@ -53,28 +61,16 @@ namespace ft
 				_Tree.insert(*first++);
 		}
 
-		map(const map<Key,T,Compare,Allocator>& x)
-		: _Tree(x.key_comp(), x.get_allocator())
-		{
-			*this = x;
+
+		map (const map& x): _Tree(x._Tree), _Alloc(x._Alloc), _Comp(x._Comp) {}
+
+		map& operator= (const map& x) {
+			if (this != &x)
+				_Tree = x._Tree;
+			return *this;
 		}
 
 		~map(){};
-
-		map<Key,T,Compare,Allocator>& operator=(const map<Key,T,Compare,Allocator>& x) {
-
-			if (this != &x) {
-				_Tree.clear();
-				const_iterator be = x.begin();
-				const_iterator end = x.end();
-				while (be != end) {
-
-					this->insert(*be);
-					++be;
-				}
-			}
-			return *this;
-		}
 
 		// iterators:
 		iterator begin() { return iterator(&_Tree, _Tree.minimum()); }
@@ -144,17 +140,17 @@ namespace ft
 		}
 
 		void		swap(map<Key,T,Compare,Allocator> &x) {
-
-			map<Key,T,Compare,Allocator> c(*this);
-			*this = x;
-			x = c;
+			_Tree.swap(x._Tree);
+			std::swap(_Alloc, x._Alloc);
+			std::swap(_Comp, x._Comp);
 		}
 
 		void clear() { _Tree.clear(); }
 
 		// observers:
 		key_compare key_comp() const { return _Tree.key_comp(); }
-		// value_compare	value_comp()	const;
+
+		value_compare	value_comp() const { return value_compare(_Comp); }
 
 		// 23.3.1.3 map operations:
 		iterator find(const key_type &x)
@@ -213,23 +209,20 @@ namespace ft
 
 	template <class Key, class T, class Compare, class Allocator>
 	bool operator==(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y){
-		if (x.size() == y.size()) {
-			return std::equal (x.begin(), x.end(), y.begin(), y.end());
+		if ( x.size() == y.size() ) {
+			return std::equal ( x.begin(), x.end(), y.begin() );
 		}
 		return false;
 	}
 
 	template <class Key, class T, class Compare, class Allocator>
-	bool operator< (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
-		typedef typename map<Key,T,Compare,Allocator>::const_iterator iter;
-		pair<iter, iter> mypair;
-		mypair = std::mismatch (x.begin(), x.end(), y.begin);
-		return (*(mypair.first) < *(mypair.second));
+	bool operator!=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return !(x == y);
 	}
 
 	template <class Key, class T, class Compare, class Allocator>
-	bool operator!=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
-		return !(x == y);
+	bool operator< (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return ft::lexicographical_compare( x.begin(), x.end(), y.begin(), y.end() );
 	}
 
 	template <class Key, class T, class Compare, class Allocator>
@@ -252,6 +245,25 @@ namespace ft
 	void swap(map<Key,T,Compare,Allocator>& x, map<Key,T,Compare,Allocator>& y) {
 		x.swap(y);
 	}
+
+	// function object template inside map
+	// uses the internal comparison object to generate the appropriate comparison
+	// functional class
+	template <typename Key, typename T, typename Compare, typename Alloc>
+	class map< Key, T, Compare, Alloc>::value_compare: public std::binary_function<typename map::value_type, typename map::value_type, bool> {
+		friend class map;
+
+		protected:
+			Compare comp;
+			value_compare (Compare c): comp (c) {}
+		public:
+			typedef bool			result_type;
+			typedef	value_type		first_argument_type;
+			typedef value_type		second_argument_type;
+			bool operator () (const value_type& x, const value_type& y) {
+				return comp (x.first, y.first);
+			}
+	};
 
 } // ft
 
