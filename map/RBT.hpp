@@ -173,7 +173,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 				TRANSPLANT(z, z->right);
 			}
 			else if (z->right == _NIL) {
-				z = z->left;
+				x = z->left;
 				TRANSPLANT(z, z->left);
 			} else {
 				y = minimum(z->right);
@@ -191,9 +191,9 @@ class RBT : protected _RBT_base<T, Alloc> {
 				y->left->p = y;
 				y->color = z->color;
 			}
-			this->_delete_node(z);
 			if (OriginalColor == BLACK)
 				deleteFIXUP(x);
+			this->_delete_node(z);
 		}
 
 		Node *search(const Key &key) const
