@@ -454,12 +454,12 @@ class RBT : protected _RBT_base<T, Alloc> {
 					}
 				}
 				else {
-					// (same as then clause with “right” and “left” exchanged)
+
 					Node *w = x->p->left;
 					if (w->color == RED) {
 						w->color = BLACK;
 						x->p->color = RED;
-						LEFT_ROTATE(x->p);
+						RIGHT_ROTATE(x->p);
 						w = x->p->left;
 					}
 					if (w->right->color == BLACK && w->left->color == BLACK) {
@@ -471,13 +471,13 @@ class RBT : protected _RBT_base<T, Alloc> {
 						if (w->left->color == BLACK) {
 							w->right->color = BLACK;
 							w->color = RED;
-							RIGHT_ROTATE(w);
+							LEFT_ROTATE(w);
 							w = x->p->left;
 						}
 						w->color = x->p->color;
 						x->p->color = BLACK;
 						w->left->color = BLACK;
-						LEFT_ROTATE(x->p);
+						RIGHT_ROTATE(x->p);
 						x = _root;
 					}
 				}
