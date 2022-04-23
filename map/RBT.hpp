@@ -484,6 +484,7 @@ class RBT : protected _RBT_base<T, Alloc> {
 			}
 			x->color = BLACK;
 		}
+		RBT(const RBT& );
 };
 
 } // ft

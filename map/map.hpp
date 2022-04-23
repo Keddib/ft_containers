@@ -143,7 +143,12 @@ namespace ft
 			}
 		}
 
-		// void		swap(map<Key,T,Compare,Allocator>&);
+		void		swap(map<Key,T,Compare,Allocator> &x) {
+
+			map<Key,T,Compare,Allocator> c(*this);
+			*this = x;
+			x = c;
+		}
 
 		void clear() { _Tree.clear(); }
 
@@ -206,27 +211,47 @@ namespace ft
 		}
 	};
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator==(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator==(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y){
+		if (x.size() == y.size()) {
+			return std::equal (x.begin(), x.end(), y.begin(), y.end());
+		}
+		return false;
+	}
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator< (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator< (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		typedef typename map<Key,T,Compare,Allocator>::const_iterator iter;
+		pair<iter, iter> mypair;
+		mypair = std::mismatch (x.begin(), x.end(), y.begin);
+		return (*(mypair.first) < *(mypair.second));
+	}
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator!=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator!=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return !(x == y);
+	}
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator> (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator> (const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return (y < x);
+	}
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator>=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator>=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return !(x < y);
+	}
 
-	// template <class Key, class T, class Compare, class Allocator>
-	// bool operator<=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	bool operator<=(const map<Key,T,Compare,Allocator>& x, const map<Key,T,Compare,Allocator>& y) {
+		return !(y < x);
+	}
 
 	// // specialized algorithms:
-	// template <class Key, class T, class Compare, class Allocator>
-	// void swap(map<Key,T,Compare,Allocator>& x, map<Key,T,Compare,Allocator>& y);
+	template <class Key, class T, class Compare, class Allocator>
+	void swap(map<Key,T,Compare,Allocator>& x, map<Key,T,Compare,Allocator>& y) {
+		x.swap(y);
+	}
 
 } // ft
 
