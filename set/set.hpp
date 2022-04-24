@@ -6,8 +6,8 @@ namespace ft {
 
 template <
 			typename Key,
-			typename Compare = less<Key>,
-			typename Allocator = allocator<Key>
+			typename Compare = std::less<Key>,
+			typename Allocator = std::allocator<Key>
 		>
 
 class set {
