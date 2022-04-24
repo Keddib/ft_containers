@@ -92,9 +92,9 @@ class _RBT_base
 		size_type max_size() const { return _N_Alloc.max_size(); }
 };
 
-	template <typename T, typename Compare, typename Alloc = std::allocator<T> >
-	class RBT : protected _RBT_base<T, Alloc>
-	{
+template <typename T, typename Compare, typename Alloc = std::allocator<T> >
+class RBT : protected _RBT_base<T, Alloc>
+{
 
 	public: // types
 		typedef T value_type;
@@ -126,7 +126,7 @@ class _RBT_base
 			: Base(x._A), _Com(x._Com), _A(x._A)
 		{
 			_NIL = this->_create_node();
-			_root = x.clone(x._root, _NIL, Base::_N_Alloc);
+			_root = x.clone(x._root, _NIL, this->Base::_N_Alloc);
 			_root->p = _NIL;
 			_size = x._size;
 		}
@@ -135,11 +135,14 @@ class _RBT_base
 		{
 			if (this != &x)
 			{
+				clear(_root);
+				_root = NULL;
+				this->_delete_node(_NIL);
 				_size = x._size;
 				_Com = x._Com;
 				_A = x._A;
-				Base::_N_Alloc = x.Base::_N_Alloc;
-				clear(_root);
+				this->Base::_N_Alloc = x.Base::_N_Alloc;
+				_NIL = this->_create_node();
 				_root = x.clone(x._root, _NIL, Base::_N_Alloc);
 				_root->p = _NIL;
 			}
@@ -181,7 +184,7 @@ class _RBT_base
 			z->p = y;
 			if (y == _NIL)
 				_root = z;
-			else if (z->value.first < y->value.first)
+			else if (_Com(z->value.first, y->value.first))
 				y->left = z;
 			else
 				y->right = z;
@@ -382,10 +385,10 @@ class _RBT_base
 			alloc.construct(_node, *x);
 			_node->left = clone(x->left, nil, alloc);
 			if (_node->left != nil)
-				_node->left->p = _node->left;
+				_node->left->p = _node;
 			_node->right = clone(x->right, nil, alloc);
 			if (_node->right != nil)
-				_node->right->p = _node->right;
+				_node->right->p = _node;
 			return _node;
 		}
 
@@ -572,27 +575,7 @@ class _RBT_base
 			}
 			x->color = BLACK;
 		}
-
-	public:
-		void printBT(const std::string &prefix, const Node *root, bool isLeft)
-		{
-			if (root != _NIL)
-			{
-				std::cout << prefix;
-				std::cout << (isLeft ? "├──" : "└──");
-				// print the value of the node
-				std::cout << root->value.first << ':' << (root->color ? 'R' : 'B') << std::endl;
-				// enter the next tree level - left and right branch
-				printBT(prefix + (isLeft ? "│   " : "    "), root->left, true);
-				printBT(prefix + (isLeft ? "│   " : "    "), root->right, false);
-			}
-		}
-
-		void printBT()
-		{
-			printBT("", _root, false);
-		}
-	};
+};
 
 } // ft
 
