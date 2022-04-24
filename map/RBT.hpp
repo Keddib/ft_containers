@@ -10,21 +10,24 @@
 namespace ft
 {
 
-	// node struct
-	template <typename _Tp>
-	struct node
-	{
+// node struct
+template <typename T>
+struct node
+{
+	T value;
+	node *p;	 // parent
+	node *left;	 // child
+	node *right; // child;
+	bool color;
+	node( const T &x = T() ) : value(x) {
+		p = NULL;
+		left = NULL;
+		right = NULL;
+		color = BLACK;
+	}
+};
 
-		_Tp value;
-		node *p;	 // parent
-		node *left;	 // left child
-		node *right; // right child;
-		bool color;
-		node(const _Tp &x = _Tp(), node *par = NULL, node *lef = NULL, node *ri = NULL, bool col = BLACK)
-			: value(x), p(par), left(lef), right(ri), color(col) {}
-	};
-
-template <typename _Tp, typename _Alloc>
+template <typename T, typename Allocator>
 class _RBT_base
 {
 	protected:
@@ -38,58 +41,33 @@ class _RBT_base
 		// instead.
 		//
 
-		typedef typename _Alloc::template rebind<node<_Tp> >::other _Node_Alloc_type;
-		typedef typename _Node_Alloc_type::size_type size_type;
-		typedef node<_Tp> Node;
-		typedef _Alloc allocator_type;
+		// types
+		typedef typename Allocator::template rebind<node<T> >::other	Node_allocator_type;
+		typedef typename Node_allocator_type::size_type					size_type;
+		typedef node<T>													Node;
 
-		_Node_Alloc_type _N_Alloc;
+		Node_allocator_type _Node_allocator;
 
-	protected:
-		_RBT_base(const allocator_type &__a) : _N_Alloc(__a) {}
+		_RBT_base(const Allocator &a) : _Node_allocator(a) {}
 
 		~_RBT_base() {}
 
+		Node *allocate_node() { return _Node_allocator.allocate(1); }
 
-		Node *_M_get_node()
-		{
-			return _N_Alloc.allocate(1);
-		}
+		void deallocate_node(Node *__p) { _Node_allocator.deallocate(__p, 1); }
 
-		void _M_put_node(Node *__p)
-		{
-			_N_Alloc.deallocate(__p, 1);
-		}
+		size_type max_size() const { return _Node_allocator.max_size(); }
 
-		Node *_create_node(const _Tp &__x = _Tp())
-		{
-			Node *p = this->_M_get_node();
-			try
-			{
-				_N_Alloc.construct(p, Node(__x));
-			}
-			catch (...)
-			{
-				_M_put_node(p);
-				// __throw_exception_again;
-			}
+		Node *create_node(const T &x = T()) {
+			Node *p = this->allocate_node();
+			_Node_allocator.construct(p, Node(x));
 			return p;
 		}
-		void _delete_node(Node *p)
-		{
-			try
-			{
-				_N_Alloc.destroy(p);
-			}
-			catch (...)
-			{
-				// __throw_exception_again;
-			}
-			_M_put_node(p);
-		}
 
-	public:
-		size_type max_size() const { return _N_Alloc.max_size(); }
+		void delete_node(Node *p) {
+			_Node_allocator.destroy(p);
+			deallocate_node(p);
+		}
 };
 
 template <typename T, typename Compare, typename Alloc = std::allocator<T> >
@@ -97,36 +75,40 @@ class RBT : protected _RBT_base<T, Alloc>
 {
 
 	public: // types
-		typedef T value_type;
-		typedef typename T::first_type Key;
-		typedef typename T::second_type Value;
-		typedef Compare key_compare;
-		typedef node<T> Node;
-		typedef Node *pointer;
-		typedef _RBT_base<T, Alloc> Base;
-		typedef typename Base::size_type size_type;
+		typedef _RBT_base<T, Alloc>					Base;
+		typedef Alloc								allocator_type;
+		typedef T									value_type;
+		typedef Compare								key_compare;
+		typedef node<T>								Node;
+		typedef Node*								node_pointer;
+		typedef typename T::first_type				Key;
+		typedef typename T::second_type				Value;
+		typedef typename Base::size_type			size_type;
 
 	private: // atributes
-		Node *_NIL;
-		Node *_root;
-		key_compare _Com;
-		Alloc _A;
-		size_t _size;
+		key_compare		_comp;
+		allocator_type	_alloc;
+		node_pointer	_NIL;
+		node_pointer	_root;
+		size_type		_size;
 
 	public:
-		RBT(const key_compare &c = key_compare(), const Alloc &a = Alloc())
-			: Base(a), _Com(c), _A(a)
+		RBT(
+			const key_compare &c = key_compare(),
+			const allocator_type &a = allocator_type()
+			)
+		: Base(a), _comp(c), _alloc(a)
 		{
-			_NIL = this->_create_node();
+			_NIL = this->create_node();
 			_root = _NIL;
 			_size = 0;
 		}
 
 		RBT(const RBT &x)
-			: Base(x._A), _Com(x._Com), _A(x._A)
+			: Base(x._alloc), _comp(x._comp), _alloc(x._alloc)
 		{
-			_NIL = this->_create_node();
-			_root = x.clone(x._root, _NIL, this->Base::_N_Alloc);
+			_NIL = this->create_node();
+			_root = x.clone(x._root, _NIL, this->Base::_Node_allocator);
 			_root->p = _NIL;
 			_size = x._size;
 		}
@@ -135,15 +117,14 @@ class RBT : protected _RBT_base<T, Alloc>
 		{
 			if (this != &x)
 			{
-				clear(_root);
-				_root = NULL;
-				this->_delete_node(_NIL);
+				// assigne members of x to this members
 				_size = x._size;
-				_Com = x._Com;
-				_A = x._A;
-				this->Base::_N_Alloc = x.Base::_N_Alloc;
-				_NIL = this->_create_node();
-				_root = x.clone(x._root, _NIL, Base::_N_Alloc);
+				_comp = x._comp;
+				_alloc = x._alloc;
+				// clear this.tree
+				clear(_root);
+				// get copy of x tree with this allocatore
+				_root = x.clone(x._root, _NIL, Base::_Node_allocator);
 				_root->p = _NIL;
 			}
 			return (*this);
@@ -151,40 +132,38 @@ class RBT : protected _RBT_base<T, Alloc>
 
 		~RBT()
 		{
+			// destructor of RBT clear the tree and delete NIL
 			clear(_root);
-			this->_delete_node(_NIL);
-			_root = NULL;
-			_NIL = NULL;
+			this->delete_node(_NIL);
 		}
 
 		pair<Node *, bool> insert(const value_type &x)
 		{
-			Node *z = this->_create_node(x);
+			Node *z = this->create_node(x);
 			return insert(z);
 		}
 
 		pair<Node *, bool> insert(Node *z)
-		{ // check duplication
+		{
 			Node *y = _NIL;
 			Node *x = _root;
 			while (x != _NIL)
 			{
 				y = x;
-				if (_Com(z->value.first, x->value.first)) // <
+				if (_comp(z->value, x->value)) // <
 					x = x->left;
-				else if (_Com(x->value.first, z->value.first))
+				else if (_comp(x->value, z->value))
 					x = x->right;
-				else
+				else // if the key already excite return the exicted node and false
 				{
-					this->_delete_node(z);
-					// return make_pair(x, false);
+					this->delete_node(z);
 					return ft::make_pair(x, false);
 				}
 			}
 			z->p = y;
 			if (y == _NIL)
 				_root = z;
-			else if (_Com(z->value.first, y->value.first))
+			else if (_comp(z->value, y->value))
 				y->left = z;
 			else
 				y->right = z;
@@ -193,13 +172,12 @@ class RBT : protected _RBT_base<T, Alloc>
 			z->color = RED;
 			insertFIXUP(z);
 			_size++;
-			// return make_pair(z, true);
 			return ft::make_pair(z, false);
 		}
 
-		int deleteNode(const Key &key)
+		size_type deleteNode(const value_type &value)
 		{
-			Node *z = search(key);
+			Node *z = search(value);
 			if (z != _NIL)
 			{
 				deleteNode(z);
@@ -244,17 +222,17 @@ class RBT : protected _RBT_base<T, Alloc>
 			}
 			if (OriginalColor == BLACK)
 				deleteFIXUP(x);
-			this->_delete_node(z);
+			this->delete_node(z);
 		}
 
-		Node *search(const Key &key) const
+		Node *search(const value_type &value) const
 		{
 			Node *tmp = _root;
 			while (tmp != _NIL)
 			{
-				if (_Com(key, tmp->value.first))
+				if (_comp(value, tmp->value))
 					tmp = tmp->left;
-				else if (_Com(tmp->value.first, key))
+				else if (_comp(tmp->value, value))
 					tmp = tmp->right;
 				else
 					return tmp;
@@ -320,18 +298,18 @@ class RBT : protected _RBT_base<T, Alloc>
 			return y;
 		}
 
-		Node *lower_bound(const Key &key) const
+		Node *lower_bound(const value_type &value) const
 		{
 			Node *x = _root;
 			Node *y = _NIL;
 			while (x != _NIL)
 			{
-				if (_Com(key, x->value.first))
+				if (_comp(value, x->value))
 				{
 					y = x;
 					x = x->left;
 				}
-				else if (_Com(x->value.first, key))
+				else if (_comp(x->value, value))
 					x = x->right;
 				else
 					return x;
@@ -339,10 +317,10 @@ class RBT : protected _RBT_base<T, Alloc>
 			return y;
 		}
 
-		Node *upper_bound(const Key &key) const
+		Node *upper_bound(const value_type &value) const
 		{
-			Node *x = lower_bound(key);
-			if (!_Com(x->value.first, key) && !_Com(key, x->value.first))
+			Node *x = lower_bound(value);
+			if (!_comp(x->value, value) && !_comp(value, x->value))
 				return successor(x);
 			return (x);
 		}
@@ -359,8 +337,8 @@ class RBT : protected _RBT_base<T, Alloc>
 			std::swap(_NIL, x._NIL);
 			std::swap(_root, x._root);
 			std::swap(_size, x._size);
-			std::swap(_A, x._A);
-			std::swap(_Com, x._Com);
+			std::swap(_alloc, x._alloc);
+			std::swap(_comp, x._comp);
 		}
 
 		Node *const nil() const { return _NIL; }
@@ -369,15 +347,13 @@ class RBT : protected _RBT_base<T, Alloc>
 
 		size_type max_size() const { return Base::max_size(); }
 
-		size_t size() const { return _size; }
-
-		key_compare key_comp() const { return _Com; }
+		size_type size() const { return _size; }
 
 	private: // mem functions
 		// clone a new tree from the subtree rooted at x
 		// and use new_nil as the new sentinel in case
 		// we have different trees
-		Node *clone(Node *x, Node *nil, typename Base::_Node_Alloc_type &alloc) const
+		Node *clone(Node *x, Node *nil, typename Base::Node_allocator_type &alloc) const
 		{
 			if (x == _NIL)
 				return nil;
@@ -401,7 +377,7 @@ class RBT : protected _RBT_base<T, Alloc>
 			clear(node->left);
 			clear(node->right);
 			/* then delete the node */
-			this->_delete_node(node);
+			this->delete_node(node);
 		}
 
 		void TRANSPLANT(Node *u, Node *v)
