@@ -33,7 +33,7 @@ class map_iterator: public std::iterator <std::bidirectional_iterator_tag, typen
 		~map_iterator(){}
 
 		template <typename T>
-		operator map_iterator<T> () { return map_iterator<T> (reinterpret_cast <const T*> (_tree) , reinterpret_cast <typename T::pointer> (_node)); }
+		operator map_iterator<T> () { return map_iterator<T> (reinterpret_cast <const T*> (_tree) , reinterpret_cast <typename T::node_pointer> (_node)); }
 
 		map_iterator& operator = (const map_iterator& x) {
 			if (this != &x) {
