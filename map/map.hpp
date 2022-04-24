@@ -52,7 +52,7 @@ class map
 
 	public:
 		// 23.3.1.1 construct/copy/destroy:
-		explicit map(const Compare &comp = Compare(), const Allocator &alloc = Allocator()) : _Tree(comp, alloc), _Alloc(alloc), _Comp(comp) {}
+		explicit map(const key_compare &comp = key_compare(), const allocator_type &alloc = allocator_type()) : _Tree(comp, alloc), _Alloc(alloc), _Comp(comp) {}
 
 		template <class InputIterator>
 		map(InputIterator first, InputIterator last, const Compare &comp = Compare(), const Allocator &alloc = Allocator()) : _Tree(comp, alloc), _Alloc(alloc), _Comp(comp)
@@ -250,7 +250,7 @@ class map
 	// uses the internal comparison object to generate the appropriate comparison
 	// functional class
 	template <typename Key, typename T, typename Compare, typename Alloc>
-	class map< Key, T, Compare, Alloc>::value_compare: public std::binary_function<typename map::value_type, typename map::value_type, bool> {
+	class map< Key, T, Compare, Alloc>::value_compare : public std::binary_function<typename map::value_type, typename map::value_type, bool> {
 		friend class map;
 
 		protected:
