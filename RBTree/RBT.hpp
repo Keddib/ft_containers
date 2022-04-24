@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <memory>
+#include "iterator.hpp"
 
 namespace ft
 {
