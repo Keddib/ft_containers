@@ -82,8 +82,8 @@ class RBT : protected _RBT_base<T, Alloc>
 		typedef Compare								key_compare;
 		typedef node<T>								Node;
 		typedef Node*								node_pointer;
-		typedef typename T::first_type				Key;
-		typedef typename T::second_type				Value;
+		// typedef typename T::first_type				Key;
+		// typedef typename T::second_type				Value;
 		typedef typename Base::size_type			size_type;
 
 	private: // atributes
