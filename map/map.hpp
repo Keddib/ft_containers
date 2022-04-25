@@ -40,8 +40,8 @@ class map
 		typedef Node*													Node_ptr;
 
 	public: // iterators
-		typedef map_iterator<_RBT>										iterator;
-		typedef map_iterator<const_RBT>									const_iterator;
+		typedef node_iterator<_RBT>										iterator;
+		typedef node_iterator<const_RBT>									const_iterator;
 		typedef ft::reverse_iterator<iterator>							reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator>					const_reverse_iterator;
 
