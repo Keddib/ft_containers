@@ -173,7 +173,7 @@ class RBT : protected _RBT_base<T, Alloc>
 			z->color = RED;
 			insertFIXUP(z);
 			_size++;
-			return ft::make_pair(z, false);
+			return ft::make_pair(z, true);
 		}
 
 		size_type deleteNode(const value_type &value)

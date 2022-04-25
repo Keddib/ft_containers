@@ -27,15 +27,15 @@ class map
 		typedef Allocator 												allocator_type;
 		typedef typename allocator_type::size_type						size_type;
 		typedef typename allocator_type::difference_type				difference_type;
-		typedef typename Allocator::reference							reference;
-		typedef typename Allocator::const_reference						const_reference;
-		typedef typename Allocator::pointer								pointer;
-		typedef typename Allocator::const_pointer						const_pointer;
+		typedef typename allocator_type::reference						reference;
+		typedef typename allocator_type::const_reference				const_reference;
+		typedef typename allocator_type::pointer						pointer;
+		typedef typename allocator_type::const_pointer					const_pointer;
 
 	private:
 		class	value_compare;
-		typedef RBT<pair<const Key, T>, value_compare, Allocator>		_RBT;
-		typedef RBT<const pair<const Key, T>, value_compare, Allocator>	const_RBT;
+		typedef RBT<value_type, value_compare, Allocator>				_RBT;
+		typedef RBT<const value_type, value_compare, Allocator>			const_RBT;
 		typedef typename _RBT::Node										Node;
 		typedef Node*													Node_ptr;
 
@@ -97,7 +97,7 @@ class map
 		// capacity:
 		bool empty() const { return !_Tree.size(); }
 		size_type size() const { return _Tree.size(); }
-		size_type max_size() const { return _Tree.max_size(); };
+		size_type max_size() const { return _Tree.max_size(); }
 		allocator_type get_allocator() const { return _Alloc; }
 
 		// 23.3.1.2 element access:
@@ -214,12 +214,16 @@ class map
 
 		pair<iterator, iterator> equal_range(const key_type &x)
 		{
-			return ft::make_pair(lower_bound(x), upper_bound(x));
+			iterator it1(lower_bound(x));
+			iterator it2(upper_bound(x));
+			return ft::make_pair(it1, it2);
 		}
 
 		pair<const_iterator, const_iterator> equal_range(const key_type &x) const
 		{
-			return ft::make_pair(lower_bound(x), upper_bound(x));
+			const_iterator it1(lower_bound(x));
+			const_iterator it2(upper_bound(x));
+			return ft::make_pair(it1, it2);
 		}
 };
 
