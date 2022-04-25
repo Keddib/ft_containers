@@ -3,7 +3,7 @@
 
 namespace ft {
 
-#include <memory>
+// #include <memory>
 #include "../utils/pair.hpp"
 #include "../utils/reverse_iterator.hpp"
 #include "../utils/lexicographical_compare.hpp"
@@ -14,13 +14,8 @@ template <
 			typename Compare = std::less<Key>,
 			typename Allocator = std::allocator<Key>
 		>
-
 class set {
 
-	private: //types
-		typedef RBT<const T, Compare, Allocator>				_RBT;
-		typedef typename _RBT::Node								Node;
-		typedef Node*											Node_ptr;
 
 
 	public: // types:
@@ -35,8 +30,13 @@ class set {
 		typedef typename Allocator::const_pointer 				const_pointer;
 		typedef typename Allocator::size_type					size_type;
 		typedef typename Allocator::difference_type				difference_type;
-		typedef map_iterator<_RBT>								iterator;
-		typedef map_iterator<_RBT>								const_iterator;
+	private: //types
+		typedef ft::RBT<const Key, Compare, Allocator>			_RBT;
+		typedef typename _RBT::Node								Node;
+		typedef Node*											Node_ptr;
+	public: // types:
+		typedef ft::node_iterator<_RBT>							iterator;
+		typedef ft::node_iterator<_RBT>							const_iterator;
 		typedef ft::reverse_iterator<iterator>					reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 
@@ -89,15 +89,15 @@ class set {
 		allocator_type get_allocator() const { return _Alloc; }
 
 		// modifiers:
-		pair<iterator,bool> insert(const value_type& x)
+		ft::pair<iterator,bool> insert(const value_type& x)
 		{
-			pair<Node_ptr, bool> ret = _Tree.insert(x);
+			ft::pair<Node_ptr, bool> ret = _Tree.insert(x);
 
 			iterator it(&_Tree, ret.first);
 			return ft::make_pair(it, ret.second);
 		}
 
-		iterator insert(iterator position, const value_type& x
+		iterator insert(iterator position, const value_type& x)
 		{
 			(void)position;
 			Node_ptr z = _Tree.insert(x).first;
@@ -131,7 +131,7 @@ class set {
 			}
 		}
 
-		void swap(set<Key,Compare,Allocator>&) {
+		void swap(set<Key,Compare,Allocator> &x) {
 			_Tree.swap(x._Tree);
 			std::swap(_Alloc, x._Alloc);
 			std::swap(_Comp, x._Comp);
@@ -159,17 +159,17 @@ class set {
 
 		iterator  lower_bound(const key_type& x) const
 		{
-			Node_ptr z = _Tree.lower_bound(tmp);
+			Node_ptr z = _Tree.lower_bound(x);
 			return iterator(&_Tree, z);
 		}
 
 		iterator  upper_bound(const key_type& x) const {
 
-			Node_ptr z = _Tree.upper_bound(tmp);
+			Node_ptr z = _Tree.upper_bound(x);
 			return iterator(&_Tree, z);
 		}
 
-		pair<iterator,iterator> equal_range(const key_type& x) const
+		ft::pair<iterator,iterator> equal_range(const key_type& x) const
 		{
 			return ft::make_pair(lower_bound(x), upper_bound(x));
 		}
