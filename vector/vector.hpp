@@ -302,7 +302,7 @@ class vector
 				clear();
 				_size = n;
 				// deallocate elemnets
-				_alloc.deallocate(_elements, _capacity / 2);
+				_alloc.deallocate(_elements, _size);
 				_elements =  tmp;
 				_alloc.construct(_elements + _size, x);
 				_size++;
