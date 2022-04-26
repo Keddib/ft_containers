@@ -42,13 +42,16 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 
 	private:
 		node_ptr		_node;
+		node_ptr		_root;
 		node_ptr		_nil;
 
 	public:
-		node_iterator (const node_ptr node = 0x0, const node_ptr nil = 0x0): _node(node), _nil (nil) {};
+		node_iterator (const node_ptr node = 0x0, const node_ptr root = 0x0)
+		: _node(node), _root(root), _nil (root->p) {};
 
 
-		node_iterator (const node_iterator& x): _node (x._node), _nil (x._nil) {}
+		node_iterator (const node_iterator& x)
+		: _node (x._node), _root(x._root), _nil (x._nil) {}
 
 		~node_iterator(){}
 
@@ -56,7 +59,11 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 		template <class U>
 		node_iterator(const node_iterator<U>& other,
 		typename ft::enable_if<std::is_convertible<U, T>::value>::type* = 0)
-				: _node((const_node_ptr)other.base()) {}
+		{
+			_node = (const_node_ptr)other.base();
+			_root = (const_node_ptr)other.get_root();
+			_nil = (const_node_ptr)other.get_nil();
+		}
 
 		// operator node_iterator<const T> () {
 			// return node_iterator<const T>( (const_node_ptr)_node, (const_node_ptr)_nil);
@@ -93,7 +100,7 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 
 		node_iterator& operator -- () {
 			if (_node == _nil)
-				_node = _nil->p;
+				_node = maximum(_root);
 			else
 				_node = prev (_node);
 			return (*this);
@@ -102,13 +109,14 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 		node_iterator operator -- (int) {
 			node_iterator tmp (*this);
 			if (_node == _nil)
-				_node = _nil->p;
+				_node = maximum(_root);
 			else
 				_node = prev (_node);
 			return (tmp);
 		}
 
 		node_ptr	get_node () const { return _node; }
+		node_ptr	get_root () const { return _root; }
 		node_ptr	get_nil () const { return _nil; }
 		node_ptr	base() const { return _node; }
 		private:

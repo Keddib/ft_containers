@@ -84,10 +84,10 @@ class map
 		~map(){};
 
 		// iterators:
-		iterator begin() { return iterator(_Tree.minimum(), _Tree.nil()); }
-		const_iterator begin() const { return const_iterator( iterator(_Tree.minimum(), _Tree.nil()) ); }
-		iterator end() { return iterator(_Tree.nil(), _Tree.nil()); }
-		const_iterator end() const { return const_iterator( iterator(_Tree.nil(), _Tree.nil()) ); }
+		iterator begin() { return iterator(_Tree.minimum(), _Tree.root()); }
+		const_iterator begin() const { return const_iterator( iterator(_Tree.minimum(), _Tree.root()) ); }
+		iterator end() { return iterator(_Tree.root(), _Tree.root()); }
+		const_iterator end() const { return const_iterator( iterator(_Tree.root(), _Tree.root()) ); }
 		reverse_iterator rbegin() { return reverse_iterator(end()); }
 		const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 		reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -112,7 +112,7 @@ class map
 		{
 			pair<Node_ptr, bool> ret = _Tree.insert(x);
 
-			iterator it(ret.first, _Tree.nil());
+			iterator it(ret.first, _Tree.root());
 			return ft::make_pair(it, ret.second);
 		}
 
@@ -120,7 +120,7 @@ class map
 		{
 			(void)position;
 			Node_ptr z = _Tree.insert(x).first;
-			return iterator(z, _Tree.nil());
+			return iterator(z, _Tree.root());
 		}
 
 		template <class InputIterator>
@@ -145,7 +145,7 @@ class map
 		void erase(iterator first, iterator last)
 		{
 			while (first != last) {
-				iterator it(_Tree.successor(first.get_node()), _Tree.nil());
+				iterator it(_Tree.successor(first.get_node()), _Tree.root());
 				_Tree.deleteNode((*first));
 				first = it;
 			}
@@ -168,20 +168,20 @@ class map
 		iterator find(const key_type &x)
 		{
 			value_type tmp(x, mapped_type());
-			return iterator(_Tree.search(tmp), _Tree.nil());
+			return iterator(_Tree.search(tmp), _Tree.root());
 		}
 
 		const_iterator find(const key_type &x) const
 		{
 			value_type tmp(x, mapped_type());
-			return const_iterator(_Tree.search(tmp), _Tree.nil());
+			return const_iterator(_Tree.search(tmp), _Tree.root());
 		}
 
 		size_type count(const key_type &x) const
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr p = _Tree.search(tmp);
-			if (p != _Tree.nil())
+			if (p != _Tree.root())
 				return 1;
 			return 0;
 		}
@@ -190,25 +190,25 @@ class map
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr z = _Tree.lower_bound(tmp);
-			return iterator(z, _Tree.nil());
+			return iterator(z, _Tree.root());
 		}
 		const_iterator lower_bound(const key_type &x) const
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr z = _Tree.lower_bound(tmp);
-			return const_iterator( iterator(z, _Tree.nil()) );
+			return const_iterator( iterator(z, _Tree.root()) );
 		}
 		iterator upper_bound(const key_type &x)
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr z = _Tree.upper_bound(tmp);
-			return iterator(z, _Tree.nil());
+			return iterator(z, _Tree.root());
 		}
 		const_iterator upper_bound(const key_type &x) const
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr z = _Tree.upper_bound(tmp);
-			return const_iterator( iterator(z, _Tree.nil()) );
+			return const_iterator( iterator(z, _Tree.root()) );
 		}
 
 		pair<iterator, iterator> equal_range(const key_type &x)
