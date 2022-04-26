@@ -11,23 +11,6 @@
 namespace ft
 {
 
-// node struct
-template <typename T>
-struct node
-{
-	T value;
-	node *p;	 // parent
-	node *left;	 // child
-	node *right; // child;
-	bool color;
-	node( const T &x = T() ) : value(x) {
-		p = NULL;
-		left = NULL;
-		right = NULL;
-		color = BLACK;
-	}
-};
-
 template <typename T, typename Allocator>
 class _RBT_base
 {
@@ -172,6 +155,7 @@ class RBT : protected _RBT_base<T, Alloc>
 			z->right = _NIL;
 			z->color = RED;
 			insertFIXUP(z);
+			// _NIL->p = maximum();
 			_size++;
 			return ft::make_pair(z, true);
 		}
@@ -224,6 +208,7 @@ class RBT : protected _RBT_base<T, Alloc>
 			if (OriginalColor == BLACK)
 				deleteFIXUP(x);
 			this->delete_node(z);
+			// _NIL->p = maximum();
 		}
 
 		Node *search(const value_type &value) const
