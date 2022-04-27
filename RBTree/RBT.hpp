@@ -65,8 +65,6 @@ class RBT : protected _RBT_base<T, Alloc>
 		typedef Compare								key_compare;
 		typedef node<T>								Node;
 		typedef Node*								node_pointer;
-		// typedef typename T::first_type				Key;
-		// typedef typename T::second_type				Value;
 		typedef typename Base::size_type			size_type;
 
 	private: // atributes
@@ -165,14 +163,14 @@ class RBT : protected _RBT_base<T, Alloc>
 			Node *z = search(value);
 			if (z != _NIL)
 			{
-				deleteNode(z);
+				deleteNode(z, false);
 				_size--;
 				return 1;
 			}
 			return 0;
 		}
 
-		void deleteNode(Node *z)
+		void deleteNode(Node *z, bool size)
 		{
 			Node *y = z;
 			Node *x;
@@ -208,6 +206,8 @@ class RBT : protected _RBT_base<T, Alloc>
 			if (OriginalColor == BLACK)
 				deleteFIXUP(x);
 			this->delete_node(z);
+			if (size)
+				_size--;
 			// _NIL->p = maximum();
 		}
 
@@ -327,13 +327,35 @@ class RBT : protected _RBT_base<T, Alloc>
 			std::swap(_comp, x._comp);
 		}
 
-		Node *const nil() const { return _NIL; }
+		node_pointer const nil() const { return _NIL; }
 
-		Node *const root() const { return _root; }
+		node_pointer const *root() const { return &_root; }
+		// node_pointer *n_root() { return &_root; }
 
 		size_type max_size() const { return Base::max_size(); }
 
 		size_type size() const { return _size; }
+
+		void printBT(const std::string& prefix, const Node * root, bool isLeft) const
+		{
+			std::cout <<"nil: " << _NIL << '\n';
+			std::cout <<"r->p: " << root->p << '\n';
+		    if( root != _NIL )
+		    {
+		        std::cout << prefix;
+		        std::cout << (isLeft ? "├──" : "└──" );
+		        // print the value of the node
+		        std::cout << root->value.first << ':' << (root->color ? 'R' : 'B') << std::endl;
+		        // enter the next tree level - left and right branch
+		        printBT( prefix + (isLeft ? "│   " : "    "), root->left, true);
+		        printBT( prefix + (isLeft ? "│   " : "    "), root->right, false);
+		    }
+		}
+
+		void printBT() const
+		{
+		    printBT("", _root, false);
+		}
 
 	private: // mem functions
 		// clone a new tree from the subtree rooted at x
