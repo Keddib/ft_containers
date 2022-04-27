@@ -83,11 +83,13 @@ class map
 
 		~map(){};
 
+
+		void printBT() { _Tree.printBT();}
 		// iterators:
 		iterator begin() { return iterator(_Tree.minimum(), _Tree.root()); }
 		const_iterator begin() const { return const_iterator( iterator(_Tree.minimum(), _Tree.root()) ); }
-		iterator end() { return iterator(_Tree.root(), _Tree.root()); }
-		const_iterator end() const { return const_iterator( iterator(_Tree.root(), _Tree.root()) ); }
+		iterator end() { return iterator(_Tree.nil(), _Tree.root()); }
+		const_iterator end() const { return const_iterator( iterator(_Tree.nil(), _Tree.root()) ); }
 		reverse_iterator rbegin() { return reverse_iterator(end()); }
 		const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 		reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -146,12 +148,12 @@ class map
 		{
 			while (first != last) {
 				iterator it(_Tree.successor(first.get_node()), _Tree.root());
-				_Tree.deleteNode((*first));
+				_Tree.deleteNode(first.get_node(), true);
 				first = it;
 			}
 		}
 
-		void		swap(map<Key,T,Compare,Allocator> &x) {
+		void swap(map<Key,T,Compare,Allocator> &x) {
 			_Tree.swap(x._Tree);
 			std::swap(_Alloc, x._Alloc);
 			std::swap(_Comp, x._Comp);
@@ -181,7 +183,7 @@ class map
 		{
 			value_type tmp(x, mapped_type());
 			Node_ptr p = _Tree.search(tmp);
-			if (p != _Tree.root())
+			if (p != _Tree.nil())
 				return 1;
 			return 0;
 		}
