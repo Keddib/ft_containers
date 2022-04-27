@@ -291,6 +291,7 @@ class vector
 				_alloc.construct(_elements + _size, x);
 				_size++;
 			} else {
+				size_type old_capacity = _capacity;
 				// reallocation
 				_capacity *= 2;
 				pointer tmp = _alloc.allocate( _capacity);
@@ -302,7 +303,7 @@ class vector
 				clear();
 				_size = n;
 				// deallocate elemnets
-				_alloc.deallocate(_elements, _size);
+				_alloc.deallocate(_elements, old_capacity);
 				_elements =  tmp;
 				_alloc.construct(_elements + _size, x);
 				_size++;
