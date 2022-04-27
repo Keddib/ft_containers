@@ -1,13 +1,13 @@
 #ifndef FT_SET_HPP
 #define FT_SET_HPP
 
-namespace ft {
-
-// #include <memory>
 #include "../utils/pair.hpp"
 #include "../utils/reverse_iterator.hpp"
 #include "../utils/lexicographical_compare.hpp"
 #include "../RBTree/RBT.hpp"
+
+namespace ft {
+
 
 template <
 			typename Key,
@@ -31,12 +31,12 @@ class set {
 		typedef typename Allocator::size_type					size_type;
 		typedef typename Allocator::difference_type				difference_type;
 	private: //types
-		typedef ft::RBT<const Key, Compare, Allocator>			_RBT;
+		typedef ft::RBT<const value_type, Compare, Allocator>	_RBT;
 		typedef typename _RBT::Node								Node;
 		typedef Node*											Node_ptr;
 	public: // types:
-		typedef ft::node_iterator<_RBT>							iterator;
-		typedef ft::node_iterator<_RBT>							const_iterator;
+		typedef ft::node_iterator<const value_type>					iterator;
+		typedef ft::node_iterator<const value_type>				const_iterator;
 		typedef ft::reverse_iterator<iterator>					reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 
@@ -71,12 +71,12 @@ class set {
 
 		~set() {}
 
-
+		void printBT() const{ _Tree.printBT();}
 		// iterators:
-		iterator begin() { return iterator(&_Tree, _Tree.minimum()); }
-		const_iterator begin() const { return const_iterator( iterator(&_Tree, _Tree.minimum()) ); }
-		iterator end() { return iterator(&_Tree, _Tree.nil()); }
-		const_iterator end() const { return const_iterator( iterator(&_Tree, _Tree.nil()) ); }
+		iterator begin() { return iterator(_Tree.minimum(), _Tree.root()); }
+		const_iterator begin() const { return const_iterator( iterator(_Tree.minimum(), _Tree.root()) ); }
+		iterator end() { return iterator(_Tree.nil(), _Tree.root()); }
+		const_iterator end() const { return const_iterator( iterator(_Tree.nil(), _Tree.root()) ); }
 		reverse_iterator rbegin() { return reverse_iterator(end()); }
 		const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 		reverse_iterator rend() { return reverse_iterator(begin()); }
@@ -93,7 +93,7 @@ class set {
 		{
 			ft::pair<Node_ptr, bool> ret = _Tree.insert(x);
 
-			iterator it(&_Tree, ret.first);
+			iterator it(ret.first, _Tree.root());
 			return ft::make_pair(it, ret.second);
 		}
 
@@ -101,7 +101,7 @@ class set {
 		{
 			(void)position;
 			Node_ptr z = _Tree.insert(x).first;
-			return iterator(&_Tree, z);
+			return iterator(z, _Tree.root());
 		}
 
 		template <class InputIterator>
@@ -125,8 +125,8 @@ class set {
 		void erase(iterator first, iterator last)
 		{
 			while (first != last) {
-				iterator it(&_Tree, _Tree.successor(first.get_node()));
-				_Tree.deleteNode((*first));
+				iterator it(_Tree.successor(first.get_node()), _Tree.root());
+				_Tree.deleteNode(first.get_node(), true);
 				first = it;
 			}
 		}
@@ -146,7 +146,7 @@ class set {
 		// set operations:
 		iterator find(const key_type& x) const
 		{
-			return iterator(&_Tree, _Tree.search(x));
+			return iterator(_Tree.search(x), _Tree.root());
 		}
 
 		size_type count(const key_type& x) const
@@ -160,13 +160,13 @@ class set {
 		iterator  lower_bound(const key_type& x) const
 		{
 			Node_ptr z = _Tree.lower_bound(x);
-			return iterator(&_Tree, z);
+			return iterator(z, _Tree.root());
 		}
 
 		iterator  upper_bound(const key_type& x) const {
 
 			Node_ptr z = _Tree.upper_bound(x);
-			return iterator(&_Tree, z);
+			return iterator(z, _Tree.root());
 		}
 
 		ft::pair<iterator,iterator> equal_range(const key_type& x) const
