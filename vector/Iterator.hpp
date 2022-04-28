@@ -92,50 +92,25 @@ class Iterator: public std::iterator <std::random_access_iterator_tag, T> {
 				return *this;
 			}
 
-			// bool operator == (const Iterator& iter) { return _p == iter._p; }
-			// bool operator != (const Iterator& iter) { return _p != iter._p; }
-			// bool operator < (const Iterator& iter) { return _p < iter._p; }
-			// bool operator > (const Iterator& iter) { return _p > iter._p; }
-			// bool operator <= (const Iterator& iter) { return _p <= iter._p; }
-			// bool operator >= (const Iterator& iter) { return _p>= iter._p; }
+			pointer base() const {return _p;}
 
-			template<typename It1, typename It2>
-			friend bool operator == (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return __x._p == __y._p;
-			}
+			template <typename V>
+			bool operator == (const Iterator<V>& iter) { return _p == iter.base(); }
 
-			template<typename It1, typename It2>
-			friend bool operator != (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return ! (__x == __y);
-			}
+			template <typename V>
+			bool operator != (const Iterator<V>& iter) { return _p != iter.base(); }
 
-			template<typename It1, typename It2>
-			friend bool operator < (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return __x._p < __y._p;
-			}
+			template <typename V>
+			bool operator < (const Iterator<V>& iter) { return _p < iter.base(); }
 
-			bool operator <= (const Iterator &other) const {
-				return (_p <= other._p);
-			}
+			template <typename V>
+			bool operator > (const Iterator<V>& iter) { return _p > iter.base(); }
 
-			template<typename It1, typename It2>
-			friend bool operator > (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return __y < __x;
-			}
+			template <typename V>
+			bool operator <= (const Iterator<V>& iter) { return _p <= iter.base(); }
 
-			template<typename It1, typename It2>
-			friend bool operator <= (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return !(__y < __x);
-			}
-
-			bool operator >= (const Iterator &other) const {
-				return !(_p < other._p);
-			}
-
-			template<typename It1, typename It2>
-			friend bool operator >= (const Iterator<It1> &__x, const Iterator<It2> &__y) {
-				return !(__x < __y);
-			}
+			template <typename V>
+			bool operator >= (const Iterator<V>& iter) { return _p>= iter.base(); }
 
 			// operator for conversion from 'Iterator<int>' to Iterator<const int>'
 			operator Iterator<const T> () {
