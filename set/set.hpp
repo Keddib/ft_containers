@@ -115,7 +115,7 @@ class set {
 		}
 
 		void erase(iterator position) {
-			_Tree.deleteNode(*position);
+			_Tree.deleteNode(position.get_node(), true);
 		}
 
 		size_type erase(const key_type& x) {
