@@ -194,6 +194,7 @@ class map
 			Node_ptr z = _Tree.lower_bound(tmp);
 			return iterator(z, _Tree.root());
 		}
+
 		const_iterator lower_bound(const key_type &x) const
 		{
 			value_type tmp(x, mapped_type());

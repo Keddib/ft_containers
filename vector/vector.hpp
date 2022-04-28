@@ -209,7 +209,9 @@ class vector
 			} else {
 
 				size_type cap = _capacity;
-				while (_capacity < sz)
+				if (_capacity * 2 < sz)
+					_capacity = sz;
+				else
 					_capacity *= 2;
 				// reallocate one time;
 				// _capacity = sz;
@@ -378,7 +380,7 @@ class vector
 				_insert(position, first, last);
 			size_type n = dis;
 			if (_size + n < _capacity) {
-				for (size_type i = _size - 1; i >= pos; --i) {
+				for (long i = _size - 1; i >= (long)pos; --i) {
 					if (i + n < _size)
 						_elements[i + n] = _elements[i];
 					else

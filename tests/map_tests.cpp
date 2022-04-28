@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "map.hpp"
+#include "../map/map.hpp"
 #include <map>
 #include <vector>
 #include <iostream>
@@ -12,6 +12,13 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <random>
+
+
+#define BLUE "\e[0;34m"
+#define red "\e[0;31m"
+#define GREEN "\e[0;32m"
+#define YELLOW "\e[1;33m"
+#define RESET "\e[0m"
 
 
 template <typename Iter1, typename Iter2>
