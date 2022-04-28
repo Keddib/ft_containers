@@ -2,10 +2,10 @@
 #define FT_VECTOR_HPP
 
 #include "Iterator.hpp"
-#include "../utils/iterator_traits.hpp"
-#include "../utils/enable_if.hpp"
-#include "../utils/lexicographical_compare.hpp"
-#include "../utils/reverse_iterator.hpp"
+#include "../utility/iterator_traits.hpp"
+#include "../utility/enable_if.hpp"
+#include "../utility/lexicographical_compare.hpp"
+#include "../utility/reverse_iterator.hpp"
 #include <memory>
 #include <algorithm>
 
@@ -207,18 +207,22 @@ class vector
 				for (; _size < sz; _size++)
 					_alloc.construct( _elements + _size, c );
 			} else {
+
+				size_type cap = _capacity;
+				while (_capacity < sz)
+					_capacity *= 2;
 				// reallocate one time;
 				// _capacity = sz;
-				pointer tmp = _alloc.allocate(sz);
+				pointer tmp = _alloc.allocate(_capacity);
 				for (size_type i = 0; i < sz; i++) {
 					if (i < _size)
 						_alloc.construct(tmp + i, _elements[i]);
 					else
 						_alloc.construct(tmp + i, c);
 				}
+				clear();
 				if (_elements)
-					_alloc.deallocate(_elements, _capacity);
-				_capacity = sz;
+					_alloc.deallocate(_elements, cap);
 				_size = sz;
 				_elements = tmp;
 			}
@@ -373,7 +377,7 @@ class vector
 			if (dis < 0) // input iterator
 				_insert(position, first, last);
 			size_type n = dis;
-			if (_size + n <= _capacity) {
+			if (_size + n < _capacity) {
 				for (size_type i = _size - 1; i >= pos; --i) {
 					if (i + n < _size)
 						_elements[i + n] = _elements[i];
@@ -388,7 +392,7 @@ class vector
 				}
 				_size += n;
 			}
-			else if (_size + n > _capacity) {
+			else if (_size + n >= _capacity) {
 				size_type newCap = n > _size ? _size + n : _size * 2;
 				pointer tmp = _alloc.allocate(newCap);
 				for (size_type i = 0; i < pos; i++)
@@ -422,12 +426,13 @@ class vector
 
 			size_type rang = last - first;
 			size_type pos = first - _elements;
-
+			size_type count = _size;
 			for (size_type i = 0; (i < rang && i < _size) ; i++)
 			{
 				_alloc.destroy(_elements + (pos + i) );
 				if (rang + (pos + i) < _size)
 					_alloc.construct(_elements + (pos + i), _elements[rang + pos + i] );
+				--count;
 			}
 
 			for (size_type i = pos + rang; i < _size; i++)
@@ -435,6 +440,7 @@ class vector
 				_alloc.destroy(_elements + i);
 				if (i + rang < _size)
 					_alloc.construct(_elements + i, _elements[i + rang] );
+				--count;
 			}
 			_size = (_size >= rang) ? _size - rang : pos;
 			return first;

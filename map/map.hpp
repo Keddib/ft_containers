@@ -1,9 +1,9 @@
 #ifndef FT_MAP_HPP
 #define FT_MAP_HPP
 
-#include "../utils/pair.hpp"
-#include "../utils/reverse_iterator.hpp"
-#include "../utils/lexicographical_compare.hpp"
+#include "../utility/pair.hpp"
+#include "../utility/reverse_iterator.hpp"
+#include "../utility/lexicographical_compare.hpp"
 #include "../RBTree/RBT.hpp"
 #include <memory>
 

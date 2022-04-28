@@ -336,26 +336,6 @@ class RBT : protected _RBT_base<T, Alloc>
 
 		size_type size() const { return _size; }
 
-		void printBT(const std::string& prefix, const Node * root, bool isLeft) const
-		{
-			std::cout <<"nil: " << _NIL << '\n';
-			std::cout <<"r->p: " << root->p << '\n';
-		    if( root != _NIL )
-		    {
-		        std::cout << prefix;
-		        std::cout << (isLeft ? "├──" : "└──" );
-		        // print the value of the node
-		        std::cout << root->value.first << ':' << (root->color ? 'R' : 'B') << std::endl;
-		        // enter the next tree level - left and right branch
-		        printBT( prefix + (isLeft ? "│   " : "    "), root->left, true);
-		        printBT( prefix + (isLeft ? "│   " : "    "), root->right, false);
-		    }
-		}
-
-		void printBT() const
-		{
-		    printBT("", _root, false);
-		}
 
 	private: // mem functions
 		// clone a new tree from the subtree rooted at x

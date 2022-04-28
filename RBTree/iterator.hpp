@@ -2,7 +2,7 @@
 #define FT_NODE_ITERATOR_HPP
 
 #include <iterator>
-#include "../utils/enable_if.hpp"
+#include "../utility/enable_if.hpp"
 
 namespace ft {
 
@@ -42,7 +42,7 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 
 	private:
 		node_ptr		_node;
-		ft::node<T> *const *_root;
+		node_ptr const *_root;
 		node_ptr		_nil;
 
 	public:
@@ -118,7 +118,7 @@ class node_iterator: public std::iterator <std::bidirectional_iterator_tag,T>
 		}
 
 		node_ptr	get_node () const { return _node; }
-		node_ptr	*get_root () const { return _root; }
+		node_ptr const *get_root () const { return _root; }
 		node_ptr	get_nil () const { return _nil; }
 		node_ptr	base() const { return _node; }
 		private:
